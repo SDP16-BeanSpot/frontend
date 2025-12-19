@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8"/>
+	<title>Kakao Maps</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+<div id="map"></div>
+<!-- 
+    [중요] 아래 스크립트의 YOUR_KAKAO_APP_KEY 부분을 발급받은 본인의 JavaScript 키로 교체해야 합니다.
+    가이드: https://developers.kakao.com/docs/latest/ko/getting-started/app-keys#javascript-key
+-->
+<script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=7e8d4e764a589a15bc24428a084ba2b8"></script>
+<script>
+	var mapContainer = document.getElementById('map'), // 지도를 표시할 div 
+		mapOption = { 
+			center: new kakao.maps.LatLng(37.566826, 126.9786567), // 지도의 중심좌표 (서울시청)
+			level: 3 // 지도의 확대 레벨
+		};
+
+	// 지도를 생성합니다    
+	var map = new kakao.maps.Map(mapContainer, mapOption); 
+</script>
+</body>
+</html>

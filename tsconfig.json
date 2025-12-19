@@ -1,11 +1,14 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": true,
+    "moduleResolution": "bundler",        
+    "customConditions": ["expo-router"],  
+    "jsx": "react-native",               
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "types": ["expo-router"],
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     }
   },
   "include": [
