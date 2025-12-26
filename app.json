@@ -21,7 +21,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.hyeonggyu.BeanSpot"
+      "package": "com.hyeonggyu.beanspot"
     },
     "web": {
       "bundler": "metro",
