@@ -27,7 +27,7 @@ interface KakaoAuthHook {
 // 웹 브라우저 세션을 완료하기 위해 필요 (특히 웹 환경)
 WebBrowser.maybeCompleteAuthSession();
 
-const REST_API_KEY = 'dcc3060fb81d292dabe5c0e380d3525f';
+const REST_API_KEY = process.env.EXPO_PUBLIC_KAKAO_REST_API_KEY || '';
 const TOKEN_KEY = 'user_jwt_token';
 const REFRESH_TOKEN_KEY = 'user_jwt_refresh_token';
 const discovery = {
@@ -216,3 +216,4 @@ export default function useKakaoAuth(): KakaoAuthHook {
 
   return { user, error, loading, kakaologin, logout };
 }
+// 

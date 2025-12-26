@@ -21,12 +21,7 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.hyeonggyu.BeanSpot",
-      "config": {
-        "googleMaps": {
-          "apiKey": "카카오맵키"
-        }
-      }
+      "package": "com.hyeonggyu.BeanSpot"
     },
     "web": {
       "bundler": "metro",
