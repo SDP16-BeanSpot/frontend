@@ -9,7 +9,11 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hyeonggyu.BeanSpot",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -17,7 +21,12 @@
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.hyeonggyu.BeanSpot"
+      "package": "com.hyeonggyu.BeanSpot",
+      "config": {
+        "googleMaps": {
+          "apiKey": "카카오맵키"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
@@ -35,7 +44,9 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-dev-client",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true

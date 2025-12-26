@@ -4,8 +4,8 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Image,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { router, Href } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import useKakaoAuth from '../../hooks/useKakaoAuth';
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
-    shadowOpacity: 0.1,
+    // shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },

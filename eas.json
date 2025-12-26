@@ -3,23 +3,30 @@
     "version": ">= 16.18.1",
     "appVersionSource": "remote"
   },
-  "build": {
-    "preview": {
-      "android": {
-        "buildType": "apk"
+   "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": { 
+        "buildType": "apk" 
       }
     },
-    "preview2": {
-      "android": {
+    "preview": { 
+      "android": { 
+        "buildType": "apk" 
+        } 
+      },
+    "preview2": { 
+      "android": { 
         "gradleCommand": ":app:assembleRelease"
-      }
-    },
+        } 
+      },
     "preview3": {
-      "developmentClient": true
-    },
+       "developmentClient": true 
+      },
     "preview4": {
-      "distribution": "internal"
-    },
+       "distribution": "internal" 
+      },
     "production": {}
   }
 }
