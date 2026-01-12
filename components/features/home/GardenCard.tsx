@@ -1,67 +1,106 @@
-// components/features/home/GardenCard.tsx
-
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 
-// 임시 데이터 타입을 정의합니다. (props로 받기 위함)
-type GardenItem = {
-  id: string;
-  name: string;
-  distance: string;
-  area: string;
-  duration: string;
-  size: string;
-  image: string;
-};
-
-// 'item'을 prop으로 받습니다.
-export const GardenCard = ({ item }: { item: GardenItem }) => {
+const GardenCard = () => {
   return (
-    <TouchableOpacity style={styles.gardenCard}>
-      <Image source={{ uri: item.image }} style={styles.gardenImage} />
-      <Text style={styles.gardenTitle}>{item.name}</Text>
-      <Text style={styles.gardenLocation}>{item.distance} 서울 {item.area}</Text>
-      <View style={styles.tagContainer}>
-        <Text style={styles.tag}>{item.duration}</Text>
-        <Text style={styles.tag}>{item.size}</Text>
+    <TouchableOpacity style={styles.listItem}>
+      <View style={styles.listImagePlaceholder} />
+      <View style={styles.listContent}>
+        <View style={styles.tagRow}>
+          <View style={styles.dDayBadge}>
+            <Text style={styles.dDayText}>마감 D-12</Text>
+          </View>
+          <View style={styles.categoryBadge}>
+            <Text style={styles.categoryBadgeText}>캠페인/이벤트</Text>
+          </View>
+        </View>
+        <Text style={styles.itemTitle} numberOfLines={1}>
+          내 나무 갖기 캠페인
+        </Text>
+        <Text style={styles.itemDate}>활동기간 2025.12.21</Text>
+        <View style={styles.locationRow}>
+          <Text style={styles.locationTag}>성동구</Text>
+          <Text style={styles.locationTag}>오프라인</Text>
+        </View>
       </View>
+      <TouchableOpacity style={styles.listHeart}>
+        <Feather name="heart" size={20} color="#ccc" />
+      </TouchableOpacity>
     </TouchableOpacity>
   );
 };
 
-// GardenCard에만 해당하는 스타일을 여기에 둡니다.
 const styles = StyleSheet.create({
-  gardenCard: {
-    width: '100%', // 너비는 FlatList의 numColumns가 관리
-    marginBottom: 20,
+  listItem: {
+    flexDirection: 'row',
+    paddingVertical: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
   },
-  gardenImage: {
-    width: '100%',
-    height: 120,
+  listImagePlaceholder: {
+    width: 90,
+    height: 110,
+    backgroundColor: '#F5F5F5',
     borderRadius: 12,
-    backgroundColor: '#EEEEEE',
   },
-  gardenTitle: {
+  listContent: {
+    flex: 1,
+    marginLeft: 15,
+    justifyContent: 'center',
+  },
+  tagRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginBottom: 6,
+  },
+  dDayBadge: {
+    backgroundColor: '#FFF0F0',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  dDayText: {
+    color: '#FF5252',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  categoryBadge: {
+    backgroundColor: '#F0FFF0',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  categoryBadgeText: {
+    color: '#4CAF50',
+    fontSize: 10,
+  },
+  itemTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginTop: 8,
+    color: '#222',
   },
-  gardenLocation: {
-    fontSize: 13,
-    color: 'gray',
-    marginVertical: 4,
-  },
-  tagContainer: {
-    flexDirection: 'row',
+  itemDate: {
+    fontSize: 12,
+    color: '#888',
     marginTop: 4,
   },
-  tag: {
-    fontSize: 12,
-    backgroundColor: '#F5F5F5',
+  locationRow: {
+    flexDirection: 'row',
+    marginTop: 8,
+    gap: 6,
+  },
+  locationTag: {
+    fontSize: 11,
+    color: '#999',
+    backgroundColor: '#F8F8F8',
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
-    marginRight: 6,
-    overflow: 'hidden',
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  listHeart: {
+    justifyContent: 'center',
   },
 });
+
+export default GardenCard;

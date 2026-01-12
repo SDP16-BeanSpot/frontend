@@ -1,45 +1,66 @@
-// components/features/home/ServiceButtons.tsx
-
 import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-export const ServiceButtons = () => {
+const ServiceButtons = () => {
   return (
-    <View style={styles.serviceButtonsContainer}>
-      <TouchableOpacity style={styles.serviceButton}>
-        <Image source={{ uri: 'https-via-placeholder-com-50x50-png-?text=Icon1' }} style={styles.serviceIcon} />
-        <Text style={styles.serviceText}>텃밭 빌리기</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.serviceButton}>
-        <Image source={{ uri: 'https-via-placeholder-com-50x50-png-?text=Icon2' }} style={styles.serviceIcon} />
-        <Text style={styles.serviceText}>텃밭 등록하기</Text>
-      </TouchableOpacity>
-    </View>
+    <>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>테마별 모아보기</Text>
+      </View>
+      <View style={styles.categoryContainer}>
+        <TouchableOpacity
+          style={[styles.categoryItem, { backgroundColor: '#F0F9F0' }]}
+        >
+          <MaterialCommunityIcons name="leaf" size={24} color="#4CAF50" />
+          <Text style={styles.categoryName}>캠페인/이벤트</Text>
+          <Text style={styles.categoryCount}>+ 124개</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.categoryItem, { backgroundColor: '#F9F4F0' }]}
+        >
+          <MaterialCommunityIcons name="megaphone" size={24} color="#7D6A5A" />
+          <Text style={styles.categoryName}>대외활동</Text>
+          <Text style={styles.categoryCount}>+ 84개</Text>
+        </TouchableOpacity>
+      </View>
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  serviceButtonsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 16,
-    paddingVertical: 20,
-    backgroundColor: 'white',
+  sectionHeader: {
+    paddingHorizontal: 20,
+    marginTop: 30,
+    marginBottom: 15,
   },
-  serviceButton: {
-    width: '48%',
-    backgroundColor: '#F5F5F5',
-    borderRadius: 12,
-    padding: 20,
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  categoryContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  categoryItem: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 15,
     alignItems: 'center',
   },
-  serviceIcon: {
-    width: 50,
-    height: 50,
-    marginBottom: 10,
+  categoryName: {
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 8,
+    color: '#444',
   },
-  serviceText: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  categoryCount: {
+    fontSize: 11,
+    color: '#4CAF50',
+    marginTop: 2,
   },
 });
+
+export default ServiceButtons;

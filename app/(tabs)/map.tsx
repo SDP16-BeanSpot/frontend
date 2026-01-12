@@ -1,6 +1,7 @@
 import React from 'react';
 import { WebView } from 'react-native-webview';
-import { StyleSheet, SafeAreaView } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 
 // kakao-map.html 파일의 내용을 문자열로 불러옵니다.
@@ -24,7 +25,7 @@ export default function MapScreen() {
     <SafeAreaView style={styles.container}>
       <WebView
         originWhitelist={['*']}
-        source={{ html: mapHtml, baseUrl: '' }} // 로컬 HTML 콘텐츠를 직접 사용
+        source={mapHtml} // require로 가져온 파일은 객체 그대로 전달
         style={styles.webview}
         javaScriptEnabled={true}
         domStorageEnabled={true}

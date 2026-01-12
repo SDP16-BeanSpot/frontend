@@ -4,40 +4,44 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { router, Href } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import useKakaoAuth from '../../hooks/useKakaoAuth';
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const wrapperWidth = SCREEN_WIDTH * 0.6; // wrapper 너비를 화면 너비의 60%로 설정
+
 export default function AuthPage() {
   const { user, loading, error, kakaologin } = useKakaoAuth();
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.content}>
         {/* Bean 캐릭터 섹션 */}
         <View style={styles.logoSection}>
-          {/* 임시 Bean 캐릭터 */}
-          <View style={styles.beanCharacter}>
-            <View style={styles.beanBody} />
-            <View style={styles.beanFace}>
-              <View style={styles.eye} />
-              <View style={styles.eye} />
-              <View style={styles.mouth} />
-            </View>
-            <View style={styles.beanLeaf} />
+          <View style={[styles.imageWrapper, { width: wrapperWidth, height: wrapperWidth * 0.68 }]}>
+            {/* 1. 로고 이미지 (배경 레이어) */}
+            <Image 
+              source={require('../../assets/images/beanspotLogo.svg')} 
+              style={[styles.logoImage, { width: wrapperWidth * 0.82, height: wrapperWidth * 0.36 }]}
+              contentFit="contain"
+            />
+
+            {/* 2. 캐릭터 이미지 (위쪽 레이어: absolute로 띄움) */}
+            <Image 
+              source={require('../../assets/images/paniOnBoarding.svg')} 
+              style={[styles.characterImage, { width: wrapperWidth * 0.5, height: wrapperWidth * 0.5 }]}
+              contentFit="contain"
+            />
           </View>
-          
           <Text style={styles.beanTitle}>Bean</Text>
         </View>
 
         {/* 설명 텍스트 */}
         <View style={styles.descriptionSection}>
           <Text style={styles.description}>
-            도심에서 도시민을 연결하는
-          </Text>
-          <Text style={styles.description}>
-            도시텃밭 중개 플랫폼
+            환경활동 찾기 플랫폼 빈스팟
           </Text>
         </View>
 
@@ -58,15 +62,13 @@ export default function AuthPage() {
             </View>
           </TouchableOpacity>
 
-
-
           <TouchableOpacity 
             style={styles.beanspotButton}
             onPress={() => router.push('/onBoarding/login' as Href)}
           >
             <View style={styles.kakaoContent}>
               <Image
-                source={require('../../assets/images/beanspotLogo.svg')} // 이미지 경로
+                source={require('../../assets/images/beanspotLogin.svg')} // 이미지 경로
                 style={styles.icon}
               />
             <Text style={styles.beanspotButtonText}>
@@ -84,7 +86,6 @@ export default function AuthPage() {
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
     </SafeAreaView>
   );
 }
@@ -104,55 +105,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 40,
   },
-  beanCharacter: {
-    position: 'relative',
-    width: 120,
-    height: 120,
-    marginBottom: 20,
-  },
-  beanBody: {
-    width: 80,
-    height: 100,
-    backgroundColor: '#8B4513',
-    borderRadius: 40,
-    position: 'absolute',
-    left: 20,
-    top: 10,
-  },
-  beanFace: {
-    width: 60,
-    height: 60,
-    backgroundColor: '#D2691E',
-    borderRadius: 30,
-    position: 'absolute',
-    left: 30,
-    top: 20,
-    justifyContent: 'center',
+  imageWrapper: {
+    justifyContent: 'flex-end', // 로고를 아래쪽에 배치
     alignItems: 'center',
+    position: 'relative', // 자식 absolute의 기준점
   },
-  eye: {
-    width: 8,
-    height: 8,
-    backgroundColor: '#000000',
-    borderRadius: 4,
-    marginHorizontal: 8,
+  logoImage: {
+    marginBottom: 10,
   },
-  mouth: {
-    width: 20,
-    height: 10,
-    backgroundColor: '#000000',
-    borderRadius: 10,
-    marginTop: 5,
-  },
-  beanLeaf: {
-    width: 30,
-    height: 15,
-    backgroundColor: '#228B22',
-    borderRadius: 8,
+  characterImage: {
     position: 'absolute',
-    right: 10,
-    top: 5,
-    transform: [{ rotate: '45deg' }],
+    top: 0,
+    right: 15,
+    zIndex: 1,
   },
   beanTitle: {
     fontSize: 32,
@@ -179,13 +144,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    // shadowOpacity: 0.1,
-    shadowRadius: 4,
     elevation: 3,
   },
   kakaoButtonText: {
@@ -198,7 +156,7 @@ const styles = StyleSheet.create({
     alignItems: 'center'
   },
   beanspotButton: {
-    backgroundColor: '#2AD300',
+    backgroundColor: '#FFFFFF',
     paddingVertical: 16,
     borderRadius: 12,
     alignItems: 'center',

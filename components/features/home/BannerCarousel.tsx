@@ -1,62 +1,60 @@
-// components/features/home/BannerCarousel.tsx
+import React from 'react';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 
-import React, { useState } from 'react';
-import { View, Text, Image, FlatList, Dimensions, StyleSheet } from 'react-native';
-
-const { width } = Dimensions.get('window');
-
-// 배너 아이템 렌더링
-const renderBannerItem = ({ item }: { item: any }) => (
-  <View style={styles.bannerItemContainer}>
-    <Image source={{ uri: item.image }} style={styles.bannerImage} />
-    <Text style={styles.bannerTitle}>{item.title}</Text>
-  </View>
-);
-
-// 페이지네이션 렌더링
-const renderPagination = (data: any[], activeIndex: number) => (
-  <View style={styles.paginationContainer}>
-    {data.map((_, index) => (
-      <View
-        key={index}
-        style={[
-          styles.dot,
-          index === activeIndex ? styles.dotActive : styles.dotInactive,
-        ]}
-      />
-    ))}
-  </View>
-);
-
-export const BannerCarousel = ({ data }: { data: any[] }) => {
-  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
-
+const BannerCarousel = () => {
   return (
-    <View style={styles.bannerContainer}>
-      <FlatList
-        data={data}
-        renderItem={renderBannerItem}
-        keyExtractor={(item) => item.id}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onScroll={(event) => {
-          const index = Math.round(event.nativeEvent.contentOffset.x / width);
-          setActiveBannerIndex(index);
-        }}
-      />
-      {renderPagination(data, activeBannerIndex)}
-    </View>
+    <TouchableOpacity style={styles.banner}>
+      <View>
+        <Text style={styles.bannerTag}>서비스 이용안내</Text>
+        <Text style={styles.bannerText}>빈스팟에 오신걸 환영해요!</Text>
+      </View>
+      <View style={styles.bannerImageCircle}>
+        <MaterialCommunityIcons name="face-recognition" size={40} color="#76E24E" />
+      </View>
+      <TouchableOpacity style={styles.bannerClose}>
+        <Feather name="x" size={16} color="#fff" />
+      </TouchableOpacity>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  bannerContainer: { height: 150 },
-  bannerItemContainer: { width: width, height: 150, justifyContent: 'center' },
-  bannerImage: { width: '100%', height: '100%', position: 'absolute', resizeMode: 'cover' },
-  bannerTitle: { fontSize: 22, fontWeight: 'bold', color: '#FFFFFF', paddingHorizontal: 16 },
-  paginationContainer: { flexDirection: 'row', position: 'absolute', bottom: 10, alignSelf: 'center' },
-  dot: { width: 8, height: 8, borderRadius: 4, marginHorizontal: 3 },
-  dotActive: { backgroundColor: 'green' },
-  dotInactive: { backgroundColor: 'gray' },
+  banner: {
+    marginHorizontal: 20,
+    backgroundColor: '#7D6A5A',
+    borderRadius: 15,
+    padding: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    position: 'relative',
+    marginBottom: 15,
+  },
+  bannerTag: {
+    color: '#D4BFA4',
+    fontSize: 11,
+    fontWeight: '600',
+  },
+  bannerText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginTop: 4,
+  },
+  bannerImageCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bannerClose: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+  },
 });
+
+export default BannerCarousel;
