@@ -1,4 +1,4 @@
-package com.hyeonggyu.BeanSpot
+package com.hyeonggyu.beanspot
 
 import android.app.Application
 import android.content.res.Configuration
@@ -15,16 +15,18 @@ import com.facebook.react.defaults.DefaultReactNativeHost
 
 import expo.modules.ApplicationLifecycleDispatcher
 import expo.modules.ReactNativeHostWrapper
+import com.hyeonggyu.beanspot.kakao.BeanSpotKakaoMapPackage
 
 class MainApplication : Application(), ReactApplication {
 
   override val reactNativeHost: ReactNativeHost = ReactNativeHostWrapper(
       this,
       object : DefaultReactNativeHost(this) {
-        override fun getPackages(): List<ReactPackage> =
+          override fun getPackages(): List<ReactPackage> =
             PackageList(this).packages.apply {
               // Packages that cannot be autolinked yet can be added manually here, for example:
               // add(MyReactNativePackage())
+              add(BeanSpotKakaoMapPackage())
             }
 
           override fun getJSMainModuleName(): String = ".expo/.virtual-metro-entry"

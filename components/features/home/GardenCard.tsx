@@ -1,31 +1,41 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import type { Garden } from '../../../features/home/types';
 
-const GardenCard = () => {
+interface GardenCardProps {
+  garden: Garden;
+  onToggleFavorite?: (id: string, isFavorite: boolean) => void;
+}
+
+const GardenCard: React.FC<GardenCardProps> = ({ garden, onToggleFavorite }) => {
   return (
     <TouchableOpacity style={styles.listItem}>
-      <View style={styles.listImagePlaceholder} />
+      <Image source={{ uri: garden.imageUrl }} style={styles.listImagePlaceholder} />
       <View style={styles.listContent}>
         <View style={styles.tagRow}>
           <View style={styles.dDayBadge}>
-            <Text style={styles.dDayText}>마감 D-12</Text>
+            <Text style={styles.dDayText}>{garden.dDay}</Text>
           </View>
           <View style={styles.categoryBadge}>
-            <Text style={styles.categoryBadgeText}>캠페인/이벤트</Text>
+            <Text style={styles.categoryBadgeText}>{garden.category}</Text>
           </View>
         </View>
         <Text style={styles.itemTitle} numberOfLines={1}>
-          내 나무 갖기 캠페인
+          {garden.title}
         </Text>
-        <Text style={styles.itemDate}>활동기간 2025.12.21</Text>
+        <Text style={styles.itemDate}>{garden.activityPeriod}</Text>
         <View style={styles.locationRow}>
-          <Text style={styles.locationTag}>성동구</Text>
-          <Text style={styles.locationTag}>오프라인</Text>
+          {garden.locationTags.map(tag => (
+            <Text key={tag} style={styles.locationTag}>{tag}</Text>
+          ))}
         </View>
       </View>
-      <TouchableOpacity style={styles.listHeart}>
-        <Feather name="heart" size={20} color="#ccc" />
+      <TouchableOpacity 
+        style={styles.listHeart}
+        onPress={() => onToggleFavorite?.(garden.id, !garden.isFavorite)}
+      >
+        <Feather name="heart" size={20} color={garden.isFavorite ? '#FF5252' : '#ccc'} />
       </TouchableOpacity>
     </TouchableOpacity>
   );

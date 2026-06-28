@@ -10,7 +10,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-const SettingItem = ({ title, onPress }) => (
+interface SettingItemProps {
+  title: string;
+  onPress?: () => void;
+}
+
+const SettingItem = ({ title, onPress }: SettingItemProps) => (
   <TouchableOpacity style={styles.item} onPress={onPress}>
     <Text style={styles.itemText}>{title}</Text>
   </TouchableOpacity>

@@ -19,7 +19,7 @@ const ServiceButtons = () => {
         <TouchableOpacity
           style={[styles.categoryItem, { backgroundColor: '#F9F4F0' }]}
         >
-          <MaterialCommunityIcons name="megaphone" size={24} color="#7D6A5A" />
+          <MaterialCommunityIcons name="bullhorn" size={24} color="#7D6A5A" />
           <Text style={styles.categoryName}>대외활동</Text>
           <Text style={styles.categoryCount}>+ 84개</Text>
         </TouchableOpacity>

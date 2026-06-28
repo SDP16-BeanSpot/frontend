@@ -1,6 +1,6 @@
-// import { CampaignSchedule, DiaryData } from './types';
+import type { CampaignSchedule, DiaryData } from './types';
 
-export const SCHEDULE_DATA: { [key: string]: CampaignSchedule[] } = {
+export const SCHEDULE_DATA = {
   '2025-12-19': [
     {
       id: '1',
@@ -25,6 +25,6 @@ export const SCHEDULE_DATA: { [key: string]: CampaignSchedule[] } = {
   ],
 };
 
-export const DIARY_DATA: { [key: string]: DiaryData } = {
+export const DIARY_DATA = {
   '2025-12-19': { id: 'd1', character: 'BROWN', emojiIndex: 0, content: '보람찬 하루!' },
 };

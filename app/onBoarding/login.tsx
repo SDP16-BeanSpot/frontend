@@ -111,11 +111,11 @@ export default function LoginPage() {
                 style={styles.eyeButton}
                 onPress={togglePasswordVisibility}
               >
-              <Ionicons name="eye" size={24} color="black" />
-              <Ionicons name="eye-off" size={24} color="black" />
-                <Text style={styles.eyeIcon}>
-                  {isPasswordVisible ? 'eye' : 'eye-off'}
-                </Text>
+                <Ionicons
+                  name={isPasswordVisible ? 'eye' : 'eye-off'}
+                  size={24}
+                  color="#666666"
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -234,10 +234,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 12,
     padding: 8,
-  },
-  eyeIcon: {
-    fontSize: 20,
-    color: '#666666',
   },
 
   // 비밀번호 안내

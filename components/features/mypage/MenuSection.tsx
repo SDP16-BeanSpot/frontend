@@ -65,7 +65,10 @@ const MenuSection = () => {
         </TouchableOpacity>
 
         {/* 약관 및 정책 */}
-        <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]}>
+        <TouchableOpacity
+          style={[styles.menuItem, { borderBottomWidth: 0 }]}
+          onPress={() => router.push('/mypage/policy')}
+        >
           <View style={styles.menuLeft}>
             <Feather name="file-text" size={20} color="#333" />
             <Text style={styles.menuText}>약관 및 정책</Text>

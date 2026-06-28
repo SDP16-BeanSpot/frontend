@@ -4,10 +4,10 @@ import { LocaleConfig } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 // Import refactored components
-import CalendarHeader from '../../components/features/calendar/CalendarHeader';
-import CalendarView from '../../components/features/calendar/CalendarView';
-import ScheduleSection from '../../components/features/calendar/ScheduleSection';
-import DiaryModal from '../../components/features/calendar/DiaryModal';
+import CalendarHeader from '../../../components/features/calendar/CalendarHeader';
+import CalendarView from '../../../components/features/calendar/CalendarView';
+import ScheduleSection from '../../../components/features/calendar/ScheduleSection';
+import DiaryModal from '../../../components/features/calendar/DiaryModal';
 
 // --- Language Configuration ---
 LocaleConfig.locales['kr'] = {

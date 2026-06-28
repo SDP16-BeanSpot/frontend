@@ -20,3 +20,8 @@ export interface DiaryData {
   emojiIndex: number;
   content: string;
 }
+
+export type ApiResult = {
+  ok: boolean;
+  skipped?: boolean;
+};

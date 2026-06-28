@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import { SCHEDULE_DATA, DIARY_DATA } from './data';
+import { SCHEDULE_DATA, DIARY_DATA } from '../../../features/calendar/mock';
 
 interface ScheduleSectionProps {
   selectedDate: string;

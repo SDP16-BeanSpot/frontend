@@ -12,7 +12,20 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.hyeonggyu.BeanSpot",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLSchemes": [
+              "EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY"
+            ]
+          }
+        ],
+        "LSApplicationQueriesSchemes": [
+          "kakaokompassauth",
+          "kakaolink",
+          "kakaoplus"
+        ],
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "사용자의 현재 위치를 지도에 표시하기 위해 위치 권한이 필요합니다."
       }
     },
     "android": {
@@ -20,8 +33,11 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "package": "com.hyeonggyu.beanspot"
+      "package": "com.hyeonggyu.beanspot",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -39,9 +55,25 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-web-browser",
       "expo-dev-client",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "extraMavenRepos": [
+              "https://devrepo.kakao.com/nexus/content/groups/public/"
+            ]
+          }
+        }
+      ],
+      "expo-font",
+      [
+        "@react-native-kakao/core",
+        {
+          "nativeAppKey": "EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

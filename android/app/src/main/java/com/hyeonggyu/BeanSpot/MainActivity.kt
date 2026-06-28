@@ -1,4 +1,4 @@
-package com.hyeonggyu.BeanSpot
+package com.hyeonggyu.beanspot
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

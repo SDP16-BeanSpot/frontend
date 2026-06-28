@@ -10,7 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { CharacterType } from './types';
+import { CharacterType } from '../../../features/calendar/types';
 
 interface DiaryModalProps {
   visible: boolean;
@@ -22,7 +22,7 @@ const DiaryModal: React.FC<DiaryModalProps> = ({ visible, onClose }) => {
   const [selectedEmojiIndex, setSelectedEmojiIndex] = useState<number>(0);
   const [diaryText, setDiaryText] = useState<string>('');
 
-  // Animation
+  // 애니메이션
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {

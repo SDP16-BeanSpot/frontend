@@ -1,18 +1,31 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import type { Banner } from '../../../features/home/types';
 
-const BannerCarousel = () => {
+interface BannerCarouselProps {
+  banners: Banner[];
+}
+
+const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners }) => {
+  const [isVisible, setIsVisible] = React.useState(true);
+
+  if (!banners.length || !isVisible) {
+    return null;
+  }
+
+  const banner = banners[0];
+
   return (
     <TouchableOpacity style={styles.banner}>
       <View>
-        <Text style={styles.bannerTag}>서비스 이용안내</Text>
-        <Text style={styles.bannerText}>빈스팟에 오신걸 환영해요!</Text>
+        <Text style={styles.bannerTag}>{banner.tag}</Text>
+        <Text style={styles.bannerText}>{banner.text}</Text>
       </View>
       <View style={styles.bannerImageCircle}>
-        <MaterialCommunityIcons name="face-recognition" size={40} color="#76E24E" />
+        <MaterialCommunityIcons name={banner.icon as any} size={40} color="#76E24E" />
       </View>
-      <TouchableOpacity style={styles.bannerClose}>
+      <TouchableOpacity style={styles.bannerClose} onPress={() => setIsVisible(false)}>
         <Feather name="x" size={16} color="#fff" />
       </TouchableOpacity>
     </TouchableOpacity>
