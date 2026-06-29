@@ -10,14 +10,14 @@
     "web": "expo start --web",
     "lint": "expo lint",
     "test": "jest",
-    "postinstall": "patch-package"
+    "postinstall": "patch-package || true"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
     "@gorhom/bottom-sheet": "^5.2.6",
-    "@react-native-kakao/core": "^2.2.7",
-    "@react-native-kakao/map": "^2.2.7",
-    "@react-native-kakao/user": "^2.2.7",
+    "@react-native-kakao/core": "2.2.7",
+    "@react-native-kakao/map": "2.2.7",
+    "@react-native-kakao/user": "2.2.7",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.0.14",

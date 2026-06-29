@@ -4,11 +4,11 @@ import { LocaleConfig } from 'react-native-calendars';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as SecureStore from 'expo-secure-store';
 
-import CalendarHeader, { MonthSelectorButton } from '../../../components/features/calendar/CalendarHeader';
+import CalendarHeader from '../../../components/features/calendar/CalendarHeader';
 import CalendarView from '../../../components/features/calendar/CalendarView';
 import ScheduleSection from '../../../components/features/calendar/ScheduleSection';
 import DiaryModal from '../../../components/features/calendar/DiaryModal';
-import MonthPicker from '../../../components/features/calendar/MonthPicker';
+import MonthPicker, { type DatePickerResult } from '../../../components/features/calendar/MonthPicker';
 import WelcomePopup from '../../../components/features/calendar/WelcomePopup';
 import { SCHEDULE_DATA } from '../../../features/calendar/mock';
 
@@ -35,11 +35,10 @@ export default function CalendarScreen() {
   const [isDiaryVisible, setDiaryVisible] = useState(false);
   const [isWelcomeVisible, setWelcomeVisible] = useState(false);
 
-  // 첫 진입 팝업
   useEffect(() => {
-    SecureStore.getItemAsync(WELCOME_KEY).then((val) => {
-      if (!val) setWelcomeVisible(true);
-    }).catch(() => setWelcomeVisible(true));
+    SecureStore.getItemAsync(WELCOME_KEY)
+      .then((val) => { if (!val) setWelcomeVisible(true); })
+      .catch(() => setWelcomeVisible(true));
   }, []);
 
   const handleWelcomeClose = async () => {
@@ -47,33 +46,28 @@ export default function CalendarScreen() {
     await SecureStore.setItemAsync(WELCOME_KEY, 'true').catch(() => {});
   };
 
-  const handlePickerConfirm = (year: number, month: number) => {
-    const next = new Date(selectedDate);
-    next.setFullYear(year);
-    next.setMonth(month - 1);
-    next.setDate(1);
+  const handlePickerConfirm = ({ year, month, day }: DatePickerResult) => {
+    const next = new Date(year, month - 1, day);
     setSelectedDate(next);
     setPickerVisible(false);
   };
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* 상단 Navbar: "캘린더" 타이틀 + 아이콘만 */}
       <CalendarHeader
         selectedDate={selectedDate}
         onOpenPicker={() => setPickerVisible(true)}
       />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-        <MonthSelectorButton
-          selectedDate={selectedDate}
-          onPress={() => setPickerVisible(true)}
-        />
-
+        {/* CalendarView 내부 상단 왼쪽에 연월 버튼 포함 */}
         <CalendarView
           current={formatDate(selectedDate)}
           selectedDate={formatDate(selectedDate)}
           onDayPress={(day) => setSelectedDate(new Date(day.dateString + 'T00:00:00'))}
           scheduleData={SCHEDULE_DATA}
+          onOpenPicker={() => setPickerVisible(true)}
         />
 
         <ScheduleSection
@@ -82,7 +76,6 @@ export default function CalendarScreen() {
         />
       </ScrollView>
 
-      {/* 월 선택 피커 */}
       <MonthPicker
         visible={isPickerVisible}
         selectedDate={selectedDate}
@@ -90,13 +83,11 @@ export default function CalendarScreen() {
         onCancel={() => setPickerVisible(false)}
       />
 
-      {/* 일기 모달 */}
       <DiaryModal
         visible={isDiaryVisible}
         onClose={() => setDiaryVisible(false)}
       />
 
-      {/* 첫 진입 팝업 */}
       <WelcomePopup
         visible={isWelcomeVisible}
         onClose={handleWelcomeClose}

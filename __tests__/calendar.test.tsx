@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import CalendarScreen from './calendar';
+import CalendarScreen from '../app/(tabs)/calendar/index';
 
 // Mocking react-native-calendars
 jest.mock('react-native-calendars', () => {
