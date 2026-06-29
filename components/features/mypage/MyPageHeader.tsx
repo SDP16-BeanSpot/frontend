@@ -1,12 +1,14 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 
 const MyPageHeader = () => {
+  const router = useRouter();
   return (
     <View style={styles.header}>
       <Text style={styles.headerTitle}>마이페이지</Text>
-      <TouchableOpacity>
+      <TouchableOpacity onPress={() => router.push('/mypage/appSettings')}>
         <Ionicons name="settings-outline" size={24} color="#333" />
       </TouchableOpacity>
     </View>

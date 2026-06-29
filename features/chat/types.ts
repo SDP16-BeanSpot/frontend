@@ -3,6 +3,7 @@ export type ChatGroup = 'interest' | 'recent';
 export type BackendChatItem = {
   id: string;
   title: string;
+  participantCount?: number;
   lastMessage: string;
   timestamp: string;
   thumbnailUrl: string;
@@ -29,6 +30,7 @@ export type MessageItem =
 export type ChatRoom = {
   id: string;
   title: string;
+  participantCount?: number;
   deadline: string;
   dday: string;
   thumbnailUrl: string;

@@ -1,6 +1,6 @@
-import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import React, { useState } from 'react';
+import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 import type { Banner } from '../../../features/home/types';
 
 interface BannerCarouselProps {
@@ -8,65 +8,67 @@ interface BannerCarouselProps {
 }
 
 const BannerCarousel: React.FC<BannerCarouselProps> = ({ banners }) => {
-  const [isVisible, setIsVisible] = React.useState(true);
+  const [visible, setVisible] = useState(true);
 
-  if (!banners.length || !isVisible) {
-    return null;
-  }
+  if (!banners.length || !visible) return null;
 
   const banner = banners[0];
 
   return (
-    <TouchableOpacity style={styles.banner}>
-      <View>
-        <Text style={styles.bannerTag}>{banner.tag}</Text>
-        <Text style={styles.bannerText}>{banner.text}</Text>
+    <View style={styles.banner}>
+      <View style={styles.textWrap}>
+        <Text style={styles.tag}>{banner.tag}</Text>
+        <Text style={styles.title}>{banner.text}</Text>
       </View>
-      <View style={styles.bannerImageCircle}>
-        <MaterialCommunityIcons name={banner.icon as any} size={40} color="#76E24E" />
-      </View>
-      <TouchableOpacity style={styles.bannerClose} onPress={() => setIsVisible(false)}>
-        <Feather name="x" size={16} color="#fff" />
+
+      <Image
+        source={require('../../../assets/images/icon.png')}
+        style={styles.mascot}
+        resizeMode="contain"
+      />
+
+      <TouchableOpacity style={styles.closeBtn} onPress={() => setVisible(false)}>
+        <Feather name="x" size={14} color="rgba(255,255,255,0.8)" />
       </TouchableOpacity>
-    </TouchableOpacity>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   banner: {
     marginHorizontal: 20,
+    marginBottom: 24,
     backgroundColor: '#7D6A5A',
-    borderRadius: 15,
+    borderRadius: 16,
     padding: 20,
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    position: 'relative',
-    marginBottom: 15,
+    overflow: 'hidden',
+    minHeight: 80,
   },
-  bannerTag: {
-    color: '#D4BFA4',
+  textWrap: { flex: 1 },
+  tag: {
     fontSize: 11,
+    color: '#D4BFA4',
     fontWeight: '600',
+    marginBottom: 5,
   },
-  bannerText: {
-    color: '#fff',
+  title: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginTop: 4,
+    color: '#fff',
+    lineHeight: 22,
   },
-  bannerImageCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  mascot: {
+    width: 64,
+    height: 64,
+    marginLeft: 12,
   },
-  bannerClose: {
+  closeBtn: {
     position: 'absolute',
     top: 10,
     right: 10,
+    padding: 4,
   },
 });
 

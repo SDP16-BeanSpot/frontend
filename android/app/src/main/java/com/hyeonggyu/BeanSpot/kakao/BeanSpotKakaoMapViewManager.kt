@@ -5,6 +5,7 @@ import com.facebook.react.bridge.ReadableMap
 import com.facebook.react.uimanager.SimpleViewManager
 import com.facebook.react.uimanager.ThemedReactContext
 import com.facebook.react.uimanager.annotations.ReactProp
+import kotlin.math.roundToInt
 
 class BeanSpotKakaoMapViewManager : SimpleViewManager<BeanSpotKakaoMapView>() {
   override fun getName(): String = "BeanSpotKakaoMapView"
@@ -31,6 +32,15 @@ class BeanSpotKakaoMapViewManager : SimpleViewManager<BeanSpotKakaoMapView>() {
   @ReactProp(name = "markerImage")
   fun setMarkerImage(view: BeanSpotKakaoMapView, markerImage: String?) {
     view.setMarkerImageUri(markerImage)
+  }
+
+  @ReactProp(name = "camera")
+  fun setCamera(view: BeanSpotKakaoMapView, camera: ReadableMap?) {
+    if (camera == null) return
+    val lat = if (camera.hasKey("lat")) camera.getDouble("lat") else return
+    val lng = if (camera.hasKey("lng")) camera.getDouble("lng") else return
+    val zoom = if (camera.hasKey("zoomLevel")) camera.getDouble("zoomLevel").roundToInt() else 3
+    view.moveCamera(lat, lng, zoom)
   }
 
   override fun getExportedCustomDirectEventTypeConstants(): Map<String, Any> {

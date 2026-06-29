@@ -1,5 +1,8 @@
 {
   "java.import.exclusions": [
-    "**/node_modules/**"
-  ]
+    "**/node_modules/**",
+    "**/build/**"
+  ],
+  "java.import.gradle.enabled": false,
+  "java.autobuild.enabled": false
 }

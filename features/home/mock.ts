@@ -5,7 +5,7 @@ export const MOCK_BANNERS: Banner[] = [
     id: '1',
     tag: '서비스 이용안내',
     text: '빈스팟에 오신걸 환영해요!',
-    icon: 'face-recognition',
+    icon: 'seed-outline',
   },
 ];
 
@@ -18,28 +18,28 @@ export const MOCK_GARDENS: Garden[] = [
     activityPeriod: '활동기간 2025.12.21',
     locationTags: ['성동구', '오프라인'],
     isFavorite: false,
-    imageUrl: 'https://via.placeholder.com/90x110.png?text=Garden1',
+    imageUrl: '',
   },
   {
     id: 'g2',
-    dDay: '마감 D-5',
-    category: '텃밭',
-    title: '주말농장 같이 가꾸실 분!',
-    activityPeriod: '활동기간 2025.12.15 - 2026.03.15',
-    locationTags: ['강남구', '온라인'],
-    isFavorite: true,
-    imageUrl: 'https://via.placeholder.com/90x110.png?text=Garden2',
+    dDay: '마감 D-1',
+    category: '캠페인/이벤트',
+    title: '줄깅 운동회',
+    activityPeriod: '활동기간 2025.12.10',
+    locationTags: ['강남구', '오프라인'],
+    isFavorite: false,
+    imageUrl: '',
   },
   {
     id: 'g3',
-    dDay: '모집중',
-    category: '클래스',
-    title: '친환경 비료 만들기',
-    activityPeriod: '상시모집',
-    locationTags: ['온라인'],
+    dDay: '마감 D-3',
+    category: '교육/체험',
+    title: '오늘부터 친환경 부스터 ON',
+    activityPeriod: '12.12 ~ 06.01',
+    locationTags: ['광진구', '오프라인'],
     isFavorite: false,
-    imageUrl: 'https://via.placeholder.com/90x110.png?text=Garden3',
+    imageUrl: '',
   },
 ];
 
-export const MOCK_POPULAR_GARDENS: Garden[] = MOCK_GARDENS.slice(0, 2);
+export const MOCK_POPULAR_GARDENS: Garden[] = MOCK_GARDENS;

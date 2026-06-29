@@ -19,7 +19,7 @@ const MenuSection = () => {
           <Feather name="chevron-right" size={20} color="#ccc" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/mypage/keywordSettings')}>
           <View style={styles.menuLeft}>
             <Feather name="tag" size={20} color="#333" />
             <Text style={styles.menuText}>키워드 알림 설정</Text>

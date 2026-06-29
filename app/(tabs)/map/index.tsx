@@ -69,7 +69,9 @@ export default function MapScreen() {
 
   useEffect(() => {
     if (Platform.OS !== 'android') {
+      // iOS는 네이티브 모듈 불필요 — 맵 지원으로 처리하고 바로 데이터 로드
       setMapSupported(true);
+      setMapReady(true);
       return;
     }
 
@@ -123,6 +125,8 @@ export default function MapScreen() {
     return visiblePostings.filter((posting) => posting.category === selectedCategory);
   }, [visiblePostings, selectedCategory]);
 
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+
   const resetLocation = async () => {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -131,6 +135,10 @@ export default function MapScreen() {
         return;
       }
       const location = await Location.getCurrentPositionAsync({});
+      setUserLocation({
+        lat: location.coords.latitude,
+        lng: location.coords.longitude,
+      });
     } catch (error) {
       console.error('위치 가져오기 실패:', error);
     }
@@ -214,6 +222,7 @@ export default function MapScreen() {
           style={styles.mapView}
           markers={visiblePostings}
           markerImage={Platform.OS === 'android' ? 'beanspot_marker' : undefined}
+          camera={userLocation ?? undefined}
           onMarkerPress={handleMarkerPress}
           onMapReady={() => setMapReady(true)}
           initialCamera={{

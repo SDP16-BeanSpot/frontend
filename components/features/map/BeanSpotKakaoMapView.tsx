@@ -5,7 +5,6 @@ import {
   type ViewProps,
   type NativeSyntheticEvent,
 } from 'react-native';
-import { View } from 'react-native';
 
 export interface MapMarker {
   id: string;
@@ -22,6 +21,7 @@ export interface MarkerPressEvent {
 export interface BeanSpotKakaoMapViewProps extends ViewProps {
   markers: MapMarker[];
   markerImage?: string;
+  camera?: { lat: number; lng: number; zoomLevel?: number };
   onMarkerPress?: (event: NativeSyntheticEvent<MarkerPressEvent>) => void;
   onMapReady?: () => void;
   initialCamera?: {
@@ -37,27 +37,23 @@ const NativeBeanSpotKakaoMapView =
 const BeanSpotKakaoMapView = ({
   markers,
   markerImage,
+  camera,
   onMarkerPress,
   onMapReady,
   initialCamera,
   ...rest
 }: BeanSpotKakaoMapViewProps) => {
   if (Platform.OS !== 'android') {
-    let IOSKakaoMapView: React.ComponentType<any> | null = null;
-    try {
-      const { KakaoMapView } = require('@react-native-kakao/map');
-      IOSKakaoMapView = KakaoMapView;
-    } catch (_) {
-      IOSKakaoMapView = null;
-    }
-
-    if (!IOSKakaoMapView) {
-      return <View {...rest} />;
-    }
-
+    // iOS: WebView 기반 Kakao Map JS SDK 사용
+    // @react-native-kakao/map의 iOS 구현이 비어있어 WebView로 대체
+    const KakaoMapWebView = require('./KakaoMapWebView').default;
     return (
-      <IOSKakaoMapView
+      <KakaoMapWebView
+        markers={markers}
+        onMarkerPress={onMarkerPress}
+        onMapReady={onMapReady}
         initialCamera={initialCamera}
+        camera={camera}
         {...rest}
       />
     );
@@ -67,6 +63,7 @@ const BeanSpotKakaoMapView = ({
     <NativeBeanSpotKakaoMapView
       markers={markers}
       markerImage={markerImage}
+      camera={camera}
       onMarkerPress={onMarkerPress}
       onMapReady={onMapReady}
       {...rest}

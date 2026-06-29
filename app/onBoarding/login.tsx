@@ -49,7 +49,7 @@ export default function LoginPage() {
       setTimeout(() => {
         setIsLoading(false);
         Alert.alert('성공', '로그인되었습니다!', [
-          { text: '확인', onPress: () => router.replace('../(tabs)/home') }
+          { text: '확인', onPress: () => router.replace('/(tabs)/home') }
         ]);
       }, 2000);
       

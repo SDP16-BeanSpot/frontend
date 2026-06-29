@@ -93,7 +93,15 @@ const ChatRoomScreen = () => {
         <TouchableOpacity onPress={() => router.back()} style={styles.headerIcon}>
           <Ionicons name="chevron-back" size={22} color="#212121" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{room?.title ?? '채팅'}</Text>
+        <View style={styles.headerCenter}>
+          <Text style={styles.headerTitle}>{room?.title ?? '채팅'}</Text>
+          {room?.participantCount != null && (
+            <View style={styles.headerMeta}>
+              <Ionicons name="people-outline" size={14} color="#757575" />
+              <Text style={styles.headerMetaText}>{room.participantCount}</Text>
+            </View>
+          )}
+        </View>
         <TouchableOpacity style={styles.headerIcon} onPress={() => setMenuVisible(true)}>
           <Ionicons name="ellipsis-horizontal" size={20} color="#212121" />
         </TouchableOpacity>
@@ -164,9 +172,10 @@ const ChatRoomScreen = () => {
       <View style={styles.roomActions}>
         <TouchableOpacity style={styles.roomActionButton}>
           <Text style={styles.roomActionText}>자세히 보기</Text>
+          <Ionicons name="chevron-forward" size={13} color="#424242" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.roomActionButton}>
-          <Text style={styles.roomActionText}>찜하기</Text>
+          <Text style={styles.roomActionText}>접어두기</Text>
         </TouchableOpacity>
       </View>
 
@@ -178,11 +187,13 @@ const ChatRoomScreen = () => {
         <View style={styles.messagesWrapper}>
           {messages.length === 0 ? (
             <View style={styles.emptyState}>
-              <View style={styles.emptyIconCircle}>
-                <Ionicons name="chatbubble-ellipses-outline" size={36} color="#C7C7C7" />
-              </View>
-              <Text style={styles.emptyTitle}>채팅이 없습니다</Text>
-              <Text style={styles.emptyDesc}>먼저 메시지를 보내보세요!</Text>
+              <Image
+                source={require('../../assets/images/icon.png')}
+                style={styles.emptyMascot}
+                resizeMode="contain"
+              />
+              <Text style={styles.emptyTitle}>진행 중인 대화가 없어요.</Text>
+              <Text style={styles.emptyDesc}>먼저 대화를 시작해 보세요!</Text>
             </View>
           ) : (
             <FlatList
@@ -198,7 +209,7 @@ const ChatRoomScreen = () => {
 
         <View style={styles.inputBar}>
           <TextInput
-            placeholder="메시지를 입력하세요"
+            placeholder="메세지를 보내보세요"
             style={styles.input}
             value={inputValue}
             onChangeText={setInputValue}
@@ -244,10 +255,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerCenter: {
+    flex: 1,
+    alignItems: 'center',
+  },
   headerTitle: {
     fontSize: 17,
     fontWeight: '700',
     color: '#212121',
+  },
+  headerMeta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    marginTop: 1,
+  },
+  headerMetaText: {
+    fontSize: 12,
+    color: '#757575',
   },
   roomCard: {
     flexDirection: 'row',
@@ -298,11 +323,14 @@ const styles = StyleSheet.create({
   },
   roomActionButton: {
     flex: 1,
+    flexDirection: 'row',
     paddingVertical: 8,
     borderRadius: 18,
     borderWidth: 1,
     borderColor: '#E0E0E0',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
   },
   roomActionText: {
     fontSize: 12,
@@ -376,23 +404,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingBottom: 40,
+    gap: 6,
   },
-  emptyIconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#F5F5F5',
-    alignItems: 'center',
-    justifyContent: 'center',
+  emptyMascot: {
+    width: 80,
+    height: 80,
+    opacity: 0.45,
+    marginBottom: 6,
   },
   emptyTitle: {
-    marginTop: 12,
     fontSize: 14,
-    fontWeight: '700',
-    color: '#424242',
+    fontWeight: '600',
+    color: '#555',
   },
   emptyDesc: {
-    marginTop: 6,
     fontSize: 12,
     color: '#9E9E9E',
   },

@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
-  
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  Alert,
 } from 'react-native';
 import { Image } from 'expo-image';
 import { router, Href } from 'expo-router';
@@ -13,10 +13,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import useKakaoAuth from '../../hooks/useKakaoAuth';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const wrapperWidth = SCREEN_WIDTH * 0.6; // wrapper 너비를 화면 너비의 60%로 설정
+const wrapperWidth = SCREEN_WIDTH * 0.6;
 
 export default function AuthPage() {
   const { user, loading, error, kakaologin } = useKakaoAuth();
+
+  // 로그인 성공 시 홈으로 이동
+  useEffect(() => {
+    if (user) {
+      router.replace('/(tabs)/home');
+    }
+  }, [user]);
+
+  // 에러 알림
+  useEffect(() => {
+    if (error) {
+      Alert.alert('로그인 실패', error);
+    }
+  }, [error]);
   return (
     <SafeAreaView style={styles.container}>
         {/* Bean 캐릭터 섹션 */}

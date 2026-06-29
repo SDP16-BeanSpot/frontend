@@ -4,8 +4,8 @@ import {
   View,
   ScrollView,
   Text,
-  ImageBackground,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
@@ -25,34 +25,30 @@ import {
 import type { Banner, Garden } from '../../../features/home/types';
 
 export default function HomeScreen() {
-  const [banners, setBanners] = useState<Banner[]>([]);
+  const [banners, setBanners]               = useState<Banner[]>([]);
   const [popularGardens, setPopularGardens] = useState<Garden[]>([]);
-  const [gardens, setGardens] = useState<Garden[]>([]);
+  const [gardens, setGardens]               = useState<Garden[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string | undefined>();
 
   useEffect(() => {
-    const loadHomeData = async () => {
-      const bannerData = await fetchBanners();
+    (async () => {
+      const [bannerData, popularData, gardenData] = await Promise.all([
+        fetchBanners(),
+        fetchPopularGardens(),
+        fetchGardens(),
+      ]);
       setBanners(bannerData);
-
-      const popularData = await fetchPopularGardens();
       setPopularGardens(popularData);
-
-      const gardenData = await fetchGardens();
       setGardens(gardenData);
-    };
-
-    loadHomeData();
+    })();
   }, []);
 
   const handleToggleFavorite = async (id: string, isFavorite: boolean) => {
-    // Optimistic update
     const updater = (items: Garden[]) =>
-      items.map(item => (item.id === id ? { ...item, isFavorite } : item));
+      items.map((item) => (item.id === id ? { ...item, isFavorite } : item));
     setGardens(updater);
     setPopularGardens(updater);
-
     await toggleFavoriteGarden(id, isFavorite);
-    // Here you might want to re-fetch or handle API errors
   };
 
   return (
@@ -60,39 +56,58 @@ export default function HomeScreen() {
       <HomeHeader />
 
       <ScrollView showsVerticalScrollIndicator={false}>
+        {/* 서비스 안내 배너 */}
         <BannerCarousel banners={banners} />
 
+        {/* 인기 공고 */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>지금 인기있는 공고만 모았어요</Text>
         </View>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.horizontalScrollContent}
+          contentContainerStyle={styles.popularScroll}
         >
-          {popularGardens.map(garden => (
-            <TouchableOpacity key={garden.id} style={styles.popularCard}>
-              <ImageBackground source={{ uri: garden.imageUrl }} style={styles.cardImagePlaceholder}>
-                <View style={styles.statusTag}>
-                  <Text style={styles.statusText}>{garden.category}</Text>
+          {popularGardens.map((garden) => (
+            <TouchableOpacity key={garden.id} style={styles.popularCard} activeOpacity={0.85}>
+              {garden.imageUrl ? (
+                <Image source={{ uri: garden.imageUrl }} style={styles.popularImg} />
+              ) : (
+                <View style={[styles.popularImg, styles.popularImgPlaceholder]}>
+                  <Feather name="image" size={28} color="#DDD" />
                 </View>
-                <TouchableOpacity
-                  style={styles.cardHeart}
-                  onPress={() => handleToggleFavorite(garden.id, !garden.isFavorite)}
-                >
-                  <Feather name="heart" size={18} color={garden.isFavorite ? '#FF5252' : '#666'} />
-                </TouchableOpacity>
-              </ImageBackground>
+              )}
+              <View style={styles.popularTagRow}>
+                <View style={styles.popularTag}>
+                  <Text style={styles.popularTagText}>{garden.category}</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                style={styles.popularHeart}
+                onPress={() => handleToggleFavorite(garden.id, !garden.isFavorite)}
+              >
+                <Feather
+                  name="heart"
+                  size={16}
+                  color={garden.isFavorite ? '#FF5252' : '#CCC'}
+                />
+              </TouchableOpacity>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
-        <ServiceButtons />
+        {/* 테마별 모아보기 */}
+        <ServiceButtons
+          selected={selectedCategory}
+          onSelect={(id) => setSelectedCategory((prev) => (prev === id ? undefined : id))}
+        />
 
+        {/* 필터 */}
         <FilterSection />
 
+        {/* 공고 리스트 */}
         <View style={styles.listContainer}>
-          {gardens.map(garden => (
+          {gardens.map((garden) => (
             <GardenCard
               key={garden.id}
               garden={garden}
@@ -106,58 +121,52 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
   sectionHeader: {
     paddingHorizontal: 20,
-    marginTop: 30,
-    marginBottom: 15,
+    marginBottom: 14,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  horizontalScrollContent: {
-    paddingLeft: 20,
-    paddingRight: 5,
-  },
+  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#222' },
+  popularScroll: { paddingHorizontal: 20, gap: 12 },
   popularCard: {
-    width: 150,
-    height: 200,
-    backgroundColor: '#F0F0F0',
-    borderRadius: 15,
-    marginRight: 15,
+    width: 140,
+    height: 180,
+    borderRadius: 14,
     overflow: 'hidden',
+    backgroundColor: '#F5F5F5',
   },
-  cardImagePlaceholder: {
-    flex: 1,
-    padding: 10,
-    justifyContent: 'space-between',
+  popularImg: { width: '100%', height: '100%' },
+  popularImgPlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  statusTag: {
-    alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255,255,255,0.8)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+  popularTagRow: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
   },
-  statusText: {
-    fontSize: 10,
-    color: '#4CAF50',
-    fontWeight: 'bold',
+  popularTag: {
+    backgroundColor: 'rgba(255,255,255,0.88)',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 5,
   },
-  cardHeart: {
-    alignSelf: 'flex-end',
+  popularTagText: { fontSize: 10, color: '#4CAF50', fontWeight: '700' },
+  popularHeart: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
     backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 6,
+    borderRadius: 14,
+    padding: 5,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   listContainer: {
     paddingHorizontal: 20,
-    paddingTop: 10,
+    paddingTop: 8,
     paddingBottom: 100,
   },
 });
