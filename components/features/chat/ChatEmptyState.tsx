@@ -1,6 +1,7 @@
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { Href, useRouter } from 'expo-router';
 import type { ChatGroup } from '../../../features/chat/types';
 
 interface ChatEmptyStateProps {
@@ -19,6 +20,7 @@ const COPY = {
 };
 
 const ChatEmptyState = ({ activeTab }: ChatEmptyStateProps) => {
+  const router = useRouter();
   const copy = COPY[activeTab];
 
   return (
@@ -29,7 +31,10 @@ const ChatEmptyState = ({ activeTab }: ChatEmptyStateProps) => {
         resizeMode="contain"
       />
       <Text style={styles.title}>{copy.title}</Text>
-      <TouchableOpacity style={styles.ctaBtn}>
+      <TouchableOpacity
+        style={styles.ctaBtn}
+        onPress={() => router.push('/(tabs)/home' as Href)}
+      >
         <Text style={styles.ctaText}>{copy.cta}</Text>
         <Feather name="chevron-right" size={14} color="#555" />
       </TouchableOpacity>

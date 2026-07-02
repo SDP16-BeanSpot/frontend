@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
+import { Href, useRouter } from 'expo-router';
 
 import HomeHeader from '../../../components/features/home/HomeHeader';
 import BannerCarousel from '../../../components/features/home/BannerCarousel';
@@ -25,6 +26,7 @@ import {
 import type { Banner, Garden } from '../../../features/home/types';
 
 export default function HomeScreen() {
+  const router = useRouter();
   const [banners, setBanners]               = useState<Banner[]>([]);
   const [popularGardens, setPopularGardens] = useState<Garden[]>([]);
   const [gardens, setGardens]               = useState<Garden[]>([]);
@@ -69,7 +71,12 @@ export default function HomeScreen() {
           contentContainerStyle={styles.popularScroll}
         >
           {popularGardens.map((garden) => (
-            <TouchableOpacity key={garden.id} style={styles.popularCard} activeOpacity={0.85}>
+            <TouchableOpacity
+              key={garden.id}
+              style={styles.popularCard}
+              activeOpacity={0.85}
+              onPress={() => router.push(`/posting/${encodeURIComponent(garden.id)}` as Href)}
+            >
               {garden.imageUrl ? (
                 <Image source={{ uri: garden.imageUrl }} style={styles.popularImg} />
               ) : (

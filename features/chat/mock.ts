@@ -41,6 +41,7 @@ export const MOCK_ROOMS: ChatRoom[] = [
     deadline: '마감일 :  2025.12.10',
     dday: 'D - 1',
     thumbnailUrl: '',
+    postingId: 'g2',
     messages: [
       { id: 'd1', type: 'date', text: '2025.12.09' },
       {
@@ -90,6 +91,7 @@ export const MOCK_ROOMS: ChatRoom[] = [
     deadline: '마감일 :  2025.12.05',
     dday: 'D - 4',
     thumbnailUrl: '',
+    postingId: 'g3',
     messages: [],
   },
   {

@@ -170,7 +170,14 @@ const ChatRoomScreen = () => {
       </View>
 
       <View style={styles.roomActions}>
-        <TouchableOpacity style={styles.roomActionButton}>
+        <TouchableOpacity
+          style={styles.roomActionButton}
+          onPress={() => {
+            if (room?.postingId) {
+              router.push(`/posting/${encodeURIComponent(room.postingId)}` as Href);
+            }
+          }}
+        >
           <Text style={styles.roomActionText}>자세히 보기</Text>
           <Ionicons name="chevron-forward" size={13} color="#424242" />
         </TouchableOpacity>

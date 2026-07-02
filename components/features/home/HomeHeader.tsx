@@ -4,31 +4,39 @@ import {
   Text,
   View,
   TouchableOpacity,
-  TextInput,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { Href, useRouter } from 'expo-router';
 
 const HomeHeader = () => {
+  const router = useRouter();
+
   return (
     <>
       <View style={styles.header}>
         <Text style={styles.logo}>
           Bean<Text style={{ color: '#76E24E' }}>.</Text>
         </Text>
-        <TouchableOpacity style={styles.iconButton}>
+        <TouchableOpacity
+          style={styles.iconButton}
+          onPress={() => router.push('/notifications' as Href)}
+        >
           <Feather name="bell" size={24} color="black" />
           <View style={styles.notificationDot} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.searchContainer}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="검색어를 입력해보세요"
-          placeholderTextColor="#999"
-        />
+      {/* 검색창 — 누르면 검색 화면으로 이동 */}
+      <TouchableOpacity
+        style={styles.searchContainer}
+        activeOpacity={0.8}
+        onPress={() => router.push('/search' as Href)}
+      >
+        <View style={styles.searchInput}>
+          <Text style={styles.searchPlaceholder}>검색어를 입력해보세요</Text>
+        </View>
         <Feather name="search" size={20} color="#999" style={styles.searchIcon} />
-      </View>
+      </TouchableOpacity>
     </>
   );
 };
@@ -64,10 +72,13 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     backgroundColor: '#F8F8F8',
-    paddingVertical: 12,
+    paddingVertical: 14,
     paddingHorizontal: 20,
     borderRadius: 30,
+  },
+  searchPlaceholder: {
     fontSize: 14,
+    color: '#999',
   },
   searchIcon: {
     position: 'absolute',

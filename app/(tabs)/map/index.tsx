@@ -14,6 +14,7 @@ import BottomSheet, { BottomSheetView, BottomSheetFlatList } from '@gorhom/botto
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
+import { Href, useRouter } from 'expo-router';
 import BeanSpotKakaoMapView from '../../../components/features/map/BeanSpotKakaoMapView';
 import { fetchJobPostings, toggleFavoritePosting } from '../../../features/map/api';
 import type { JobPosting } from '../../../features/map/types';
@@ -22,6 +23,7 @@ import type { JobPosting } from '../../../features/map/types';
 const CATEGORIES = ['전체', '재생에너지', '환경보전', '일자리 창출', '지속가능성'];
 
 export default function MapScreen() {
+  const router = useRouter();
   const bottomSheetRef = useRef<BottomSheet>(null);
   
   const snapPoints = useMemo(() => ['12%', '50%', '90%'], []);
@@ -151,6 +153,7 @@ export default function MapScreen() {
         item.id === selectedPostingId && styles.postingCardSelected,
       ]}
       activeOpacity={0.8}
+      onPress={() => router.push(`/posting/${encodeURIComponent(item.id)}` as Href)}
     >
       <Image 
         source={{ uri: item.thumbnail }} 

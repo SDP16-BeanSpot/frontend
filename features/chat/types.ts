@@ -34,6 +34,7 @@ export type ChatRoom = {
   deadline: string;
   dday: string;
   thumbnailUrl: string;
+  postingId?: string;
   messages: MessageItem[];
 };
 

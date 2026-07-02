@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Href, useRouter } from 'expo-router';
 
 interface CalendarHeaderProps {
   selectedDate: Date;
@@ -8,6 +9,7 @@ interface CalendarHeaderProps {
 }
 
 const CalendarHeader: React.FC<CalendarHeaderProps> = () => {
+  const router = useRouter();
   return (
     <View style={styles.header}>
       <Text style={styles.title}>캘린더</Text>
@@ -15,7 +17,7 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = () => {
         <TouchableOpacity style={styles.iconBtn}>
           <MaterialCommunityIcons name="book-open-variant-outline" size={24} color="#333" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.iconBtn}>
+        <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/notifications' as Href)}>
           <Feather name="bell" size={24} color="#333" />
         </TouchableOpacity>
       </View>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { Href, useRouter } from 'expo-router';
 import type { Garden } from '../../../features/home/types';
 
 interface GardenCardProps {
@@ -17,10 +18,15 @@ const CATEGORY_COLORS: Record<string, { text: string; bg: string }> = {
 };
 
 const GardenCard: React.FC<GardenCardProps> = ({ garden, onToggleFavorite }) => {
+  const router = useRouter();
   const catStyle = CATEGORY_COLORS[garden.category] ?? { text: '#888', bg: '#F5F5F5' };
 
   return (
-    <TouchableOpacity style={styles.card} activeOpacity={0.85}>
+    <TouchableOpacity
+      style={styles.card}
+      activeOpacity={0.85}
+      onPress={() => router.push(`/posting/${encodeURIComponent(garden.id)}` as Href)}
+    >
       {/* Thumbnail */}
       <View style={styles.thumb}>
         {garden.imageUrl ? (
