@@ -97,7 +97,7 @@ const KakaoMapWebView: React.FC<KakaoMapWebViewProps> = ({
         if (msg.type === 'mapReady' && onMapReady) {
           onMapReady();
         }
-      } catch (_) {}
+      } catch {}
     },
     [onMarkerPress, onMapReady],
   );

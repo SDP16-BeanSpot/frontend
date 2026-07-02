@@ -28,7 +28,6 @@ export default function MapScreen() {
   
   const snapPoints = useMemo(() => ['12%', '50%', '90%'], []);
 
-  const [allPostings, setAllPostings] = useState<JobPosting[]>([]);
   const [visiblePostings, setVisiblePostings] = useState<JobPosting[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
@@ -40,7 +39,6 @@ export default function MapScreen() {
   const loadData = async () => {
     setLoading(true);
     const data = await fetchJobPostings();
-    setAllPostings(data);
     setVisiblePostings(data); // Initially show all
     setLoading(false);
   };

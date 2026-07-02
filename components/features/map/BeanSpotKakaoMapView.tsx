@@ -5,6 +5,7 @@ import {
   type ViewProps,
   type NativeSyntheticEvent,
 } from 'react-native';
+import KakaoMapWebView from './KakaoMapWebView';
 
 export interface MapMarker {
   id: string;
@@ -46,7 +47,6 @@ const BeanSpotKakaoMapView = ({
   if (Platform.OS !== 'android') {
     // iOS: WebView 기반 Kakao Map JS SDK 사용
     // @react-native-kakao/map의 iOS 구현이 비어있어 WebView로 대체
-    const KakaoMapWebView = require('./KakaoMapWebView').default;
     return (
       <KakaoMapWebView
         markers={markers}

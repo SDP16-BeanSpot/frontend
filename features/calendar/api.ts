@@ -1,29 +1,25 @@
 import type { ApiResult, CampaignSchedule, DiaryData, TodoItem } from './types';
 import { SCHEDULE_DATA, DIARY_DATA } from './mock';
+import { api, isApiConfigured } from '../shared/apiClient';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
+// ⚠️ 엔드포인트 경로는 추정값입니다. Swagger 확인 후 수정하세요.
 
 export const fetchSchedules = async (date: string): Promise<CampaignSchedule[]> => {
-  if (!API_BASE_URL) {
+  if (!isApiConfigured()) return SCHEDULE_DATA[date] || [];
+  try {
+    return await api.get<CampaignSchedule[]>(`/calendar/schedules/${date}`);
+  } catch {
     return SCHEDULE_DATA[date] || [];
   }
-
-  const response = await fetch(`${API_BASE_URL}/calendar/schedules/${date}`);
-  if (!response.ok) {
-    return SCHEDULE_DATA[date] || [];
-  }
-  return (await response.json()) as CampaignSchedule[];
 };
 
 export const fetchDiary = async (date: string): Promise<DiaryData | null> => {
-  if (!API_BASE_URL) {
+  if (!isApiConfigured()) return DIARY_DATA[date] || null;
+  try {
+    return await api.get<DiaryData>(`/calendar/diary/${date}`);
+  } catch {
     return DIARY_DATA[date] || null;
   }
-  const response = await fetch(`${API_BASE_URL}/calendar/diary/${date}`);
-  if (!response.ok) {
-    return DIARY_DATA[date] || null;
-  }
-  return (await response.json()) as DiaryData;
 };
 
 export const updateTodo = async (
@@ -31,16 +27,10 @@ export const updateTodo = async (
   todoId: string,
   payload: Partial<Pick<TodoItem, 'completed'>>,
 ): Promise<ApiResult> => {
-  if (!API_BASE_URL) {
-    return { ok: false, skipped: true };
-  }
+  if (!isApiConfigured()) return { ok: false, skipped: true };
   try {
-    const response = await fetch(`${API_BASE_URL}/calendar/schedules/${scheduleId}/todos/${todoId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    return { ok: response.ok };
+    await api.patch(`/calendar/schedules/${scheduleId}/todos/${todoId}`, payload);
+    return { ok: true };
   } catch (error) {
     console.warn('Failed to update todo', error);
     return { ok: false };
@@ -51,16 +41,10 @@ export const saveDiary = async (
   date: string,
   payload: Omit<DiaryData, 'id'>,
 ): Promise<ApiResult> => {
-  if (!API_BASE_URL) {
-    return { ok: false, skipped: true };
-  }
+  if (!isApiConfigured()) return { ok: false, skipped: true };
   try {
-    const response = await fetch(`${API_BASE_URL}/calendar/diary/${date}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    return { ok: response.ok };
+    await api.post(`/calendar/diary/${date}`, payload);
+    return { ok: true };
   } catch (error) {
     console.warn('Failed to save diary', error);
     return { ok: false };

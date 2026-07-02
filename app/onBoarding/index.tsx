@@ -63,8 +63,9 @@ export default function AuthPage() {
         {/*카카오 버튼 섹션 */}
         <View style={styles.buttonSection}>
           <TouchableOpacity
-            style={styles.kakaoButton}
-            onPress={kakaologin} // 인증 함수 연결! (hooks에서 받아오기)
+            style={[styles.kakaoButton, loading && styles.kakaoButtonDisabled]}
+            onPress={kakaologin}
+            disabled={loading}
           >
             <View style={styles.kakaoContent}>
               <Image
@@ -72,7 +73,7 @@ export default function AuthPage() {
                 style={styles.icon}
               />
               <Text style={styles.kakaoButtonText}>
-                카카오로 시작하기
+                {loading ? '로그인 중...' : '카카오로 시작하기'}
               </Text>
             </View>
           </TouchableOpacity>
@@ -160,6 +161,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
     elevation: 3,
+  },
+  kakaoButtonDisabled: {
+    opacity: 0.6,
   },
   kakaoButtonText: {
     fontSize: 16,

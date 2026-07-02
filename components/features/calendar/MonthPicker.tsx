@@ -124,7 +124,7 @@ const MonthPicker: React.FC<MonthPickerProps> = ({
       setMonth(selectedDate.getMonth() + 1);
       setDay(selectedDate.getDate());
     }
-  }, [visible]);
+  }, [visible, selectedDate]);
 
   // 연/월이 바뀌면 day가 유효 범위를 벗어날 수 있으므로 보정
   const maxDay = daysInMonth(year, month);

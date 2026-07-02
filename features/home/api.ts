@@ -1,53 +1,44 @@
 import type { ApiResult, Banner, Garden } from './types';
 import { MOCK_BANNERS, MOCK_GARDENS, MOCK_POPULAR_GARDENS } from './mock';
+import { api, isApiConfigured } from '../shared/apiClient';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
+// ⚠️ 엔드포인트 경로는 추정값입니다. Swagger 확인 후 수정하세요.
 
 export const fetchBanners = async (): Promise<Banner[]> => {
-  if (!API_BASE_URL) {
+  if (!isApiConfigured()) return MOCK_BANNERS;
+  try {
+    return await api.get<Banner[]>('/home/banners');
+  } catch {
     return MOCK_BANNERS;
   }
-  const response = await fetch(`${API_BASE_URL}/home/banners`);
-  if (!response.ok) {
-    return MOCK_BANNERS;
-  }
-  return (await response.json()) as Banner[];
 };
 
 export const fetchGardens = async (): Promise<Garden[]> => {
-  if (!API_BASE_URL) {
+  if (!isApiConfigured()) return MOCK_GARDENS;
+  try {
+    return await api.get<Garden[]>('/home/gardens');
+  } catch {
     return MOCK_GARDENS;
   }
-  const response = await fetch(`${API_BASE_URL}/home/gardens`);
-  if (!response.ok) {
-    return MOCK_GARDENS;
-  }
-  return (await response.json()) as Garden[];
 };
 
 export const fetchPopularGardens = async (): Promise<Garden[]> => {
-    if (!API_BASE_URL) {
-      return MOCK_POPULAR_GARDENS;
-    }
-    const response = await fetch(`${API_BASE_URL}/home/gardens/popular`);
-    if (!response.ok) {
-      return MOCK_POPULAR_GARDENS;
-    }
-    return (await response.json()) as Garden[];
-  };
-
-export const toggleFavoriteGarden = async (id: string, isFavorite: boolean): Promise<ApiResult> => {
-  if (!API_BASE_URL) {
-    // In a real app, you'd update the mock data state here
-    return { ok: true, skipped: true };
-  }
+  if (!isApiConfigured()) return MOCK_POPULAR_GARDENS;
   try {
-    const response = await fetch(`${API_BASE_URL}/home/gardens/${id}/favorite`, {
-      method: 'POST', // or PUT
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isFavorite }),
-    });
-    return { ok: response.ok };
+    return await api.get<Garden[]>('/home/gardens/popular');
+  } catch {
+    return MOCK_POPULAR_GARDENS;
+  }
+};
+
+export const toggleFavoriteGarden = async (
+  id: string,
+  isFavorite: boolean,
+): Promise<ApiResult> => {
+  if (!isApiConfigured()) return { ok: true, skipped: true };
+  try {
+    await api.post(`/home/gardens/${id}/favorite`, { isFavorite });
+    return { ok: true };
   } catch (error) {
     console.warn('Failed to toggle favorite', error);
     return { ok: false };

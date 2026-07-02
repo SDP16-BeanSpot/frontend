@@ -27,6 +27,11 @@ const config = {
       ITSAppUsesNonExemptEncryption: false,
       NSLocationWhenInUseUsageDescription:
         "사용자의 현재 위치를 지도에 표시하기 위해 위치 권한이 필요합니다.",
+      // 백엔드가 HTTP(비암호화)라 개발 단계에서 임의 로드 허용.
+      // 운영 배포 시 HTTPS 전환 후 이 설정을 제거하세요.
+      NSAppTransportSecurity: {
+        NSAllowsArbitraryLoads: true,
+      },
     },
   },
   android: {
@@ -59,6 +64,9 @@ const config = {
       "expo-build-properties",
       {
         android: {
+          // 백엔드가 HTTP(비암호화)라 개발 단계에서 cleartext 허용.
+          // 운영 배포 시 HTTPS 전환 후 false 로 바꾸세요.
+          usesCleartextTraffic: true,
           extraMavenRepos: [
             "https://devrepo.kakao.com/nexus/content/groups/public/",
           ],

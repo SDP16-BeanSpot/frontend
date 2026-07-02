@@ -1,22 +1,21 @@
 import type { ApiResult, PostingDetail } from './types';
 import { MOCK_POSTINGS } from './mock';
+import { api, isApiConfigured } from '../shared/apiClient';
 
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
+// ⚠️ 엔드포인트 경로는 추정값입니다. Swagger 확인 후 수정하세요.
 
 export const fetchPostingDetail = async (id: string): Promise<PostingDetail | null> => {
-  if (!API_BASE_URL) {
+  if (!isApiConfigured()) return MOCK_POSTINGS[id] ?? null;
+  try {
+    return await api.get<PostingDetail>(`/postings/${id}`);
+  } catch {
     return MOCK_POSTINGS[id] ?? null;
   }
-  const response = await fetch(`${API_BASE_URL}/postings/${id}`);
-  if (!response.ok) {
-    return MOCK_POSTINGS[id] ?? null;
-  }
-  return (await response.json()) as PostingDetail;
 };
 
 export const searchPostings = async (query: string): Promise<PostingDetail[]> => {
   const all = Object.values(MOCK_POSTINGS);
-  if (!API_BASE_URL) {
+  if (!isApiConfigured()) {
     if (!query.trim()) return all;
     return all.filter(
       (p) =>
@@ -25,27 +24,21 @@ export const searchPostings = async (query: string): Promise<PostingDetail[]> =>
         p.organizer.includes(query),
     );
   }
-  const response = await fetch(
-    `${API_BASE_URL}/postings/search?q=${encodeURIComponent(query)}`,
-  );
-  if (!response.ok) return [];
-  return (await response.json()) as PostingDetail[];
+  try {
+    return await api.get<PostingDetail[]>('/postings/search', { params: { q: query } });
+  } catch {
+    return [];
+  }
 };
 
 export const toggleFavoritePosting = async (
   id: string,
   isFavorite: boolean,
 ): Promise<ApiResult> => {
-  if (!API_BASE_URL) {
-    return { ok: true, skipped: true };
-  }
+  if (!isApiConfigured()) return { ok: true, skipped: true };
   try {
-    const response = await fetch(`${API_BASE_URL}/postings/${id}/favorite`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ isFavorite }),
-    });
-    return { ok: response.ok };
+    await api.post(`/postings/${id}/favorite`, { isFavorite });
+    return { ok: true };
   } catch {
     return { ok: false };
   }

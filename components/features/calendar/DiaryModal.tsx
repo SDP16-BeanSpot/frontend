@@ -35,7 +35,7 @@ const DiaryModal: React.FC<DiaryModalProps> = ({ visible, onClose }) => {
         useNativeDriver: true,
       }).start();
     }
-  }, [selectedEmojiIndex, visible]);
+  }, [selectedEmojiIndex, visible, scaleAnim]);
 
   const getEmojis = (type: CharacterType) => {
     const color = type === 'BROWN' ? '#7D5A44' : '#76E24E';

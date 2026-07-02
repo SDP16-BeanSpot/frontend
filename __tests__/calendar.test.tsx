@@ -17,39 +17,56 @@ jest.mock('react-native-calendars', () => {
   return {
     Calendar: MockCalendar,
     LocaleConfig: {
-      locales: { 'kr': {} },
-      defaultLocale: ''
-    }
+      locales: { kr: {} },
+      defaultLocale: '',
+    },
   };
 });
 
+// expo-secure-store: 첫 진입 팝업(WelcomePopup)이 뜨지 않도록 이미 확인한 것으로 처리
+jest.mock('expo-secure-store', () => ({
+  getItemAsync: jest.fn().mockResolvedValue('true'),
+  setItemAsync: jest.fn().mockResolvedValue(undefined),
+}));
+
 describe('CalendarScreen', () => {
-  it('should change month when header buttons are pressed', () => {
-    const { getByText, getByTestId } = render(<CalendarScreen />);
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-12-19T00:00:00'));
+  });
 
-    // Initial month is December 2025
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('shows the current year/month as a picker button', () => {
+    const { getByText } = render(<CalendarScreen />);
+
+    // 캘린더 상단 왼쪽 연월 버튼 (CalendarView 내부)
     expect(getByText('2025년 12월')).toBeTruthy();
+  });
 
-    // Go to next month
-    fireEvent.press(getByTestId('next-month'));
-    expect(getByText('2026년 1월')).toBeTruthy();
+  it('opens the date picker modal when the month button is pressed', () => {
+    const { getByText, queryByText } = render(<CalendarScreen />);
 
-    // Go to previous month
-    fireEvent.press(getByTestId('prev-month'));
-    fireEvent.press(getByTestId('prev-month'));
-    expect(getByText('2025년 11월')).toBeTruthy();
+    // 모달은 기본적으로 닫혀있음
+    expect(queryByText('날짜 선택')).toBeNull();
+
+    fireEvent.press(getByText('2025년 12월'));
+
+    expect(getByText('날짜 선택')).toBeTruthy();
   });
 
   it('should select a new date when a day is pressed', () => {
     const { getByText } = render(<CalendarScreen />);
 
-    // Initial date is 19
-    expect(getByText('19. 목')).toBeTruthy();
+    // Initial date is 19 (2025-12-19, 금요일)
+    expect(getByText('19. 금')).toBeTruthy();
 
-    // Press a different day (mocked to be 24)
+    // Press a different day (mocked to be 2025-12-24)
     fireEvent.press(getByText('24'));
 
     // The schedule section should now show the new date
-    expect(getByText('24. 목')).toBeTruthy();
+    expect(getByText('24. 수')).toBeTruthy();
   });
 });
