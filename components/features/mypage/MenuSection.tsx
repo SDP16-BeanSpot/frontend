@@ -1,16 +1,19 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather, Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
+import { useUserRole } from '../../../hooks/useUserRole';
 
 const MenuSection = () => {
   const router = useRouter();
+  const { isAdmin } = useUserRole();
+
   return (
     <>
       {/* 설정 그룹 */}
       <View style={styles.menuGroupCard}>
         <Text style={styles.groupLabel}>설정</Text>
-        
+
         <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/mypage/appSettings')}>
           <View style={styles.menuLeft}>
             <Ionicons name="settings-outline" size={20} color="#333" />
@@ -19,22 +22,46 @@ const MenuSection = () => {
           <Feather name="chevron-right" size={20} color="#ccc" />
         </TouchableOpacity>
 
-        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/mypage/keywordSettings')}>
+        <TouchableOpacity
+          style={[styles.menuItem, { borderBottomWidth: 0 }]}
+          onPress={() => router.push('/mypage/keywordSettings')}
+        >
           <View style={styles.menuLeft}>
             <Feather name="tag" size={20} color="#333" />
             <Text style={styles.menuText}>키워드 알림 설정</Text>
           </View>
           <Feather name="chevron-right" size={20} color="#ccc" />
         </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.menuItem, { borderBottomWidth: 0 }]}>
-          <View style={styles.menuLeft}>
-            <Feather name="mail" size={20} color="#333" />
-            <Text style={styles.menuText}>공고 등록</Text>
-          </View>
-          <Feather name="chevron-right" size={20} color="#ccc" />
-        </TouchableOpacity>
       </View>
+
+      {/* 관리자 그룹 — ADMIN 역할일 때만 노출 */}
+      {isAdmin && (
+        <View style={styles.menuGroupCard}>
+          <Text style={styles.groupLabel}>관리자</Text>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push('/admin/announcementCreate' as Href)}
+          >
+            <View style={styles.menuLeft}>
+              <Feather name="plus-square" size={20} color="#333" />
+              <Text style={styles.menuText}>공고 등록</Text>
+            </View>
+            <Feather name="chevron-right" size={20} color="#ccc" />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.menuItem, { borderBottomWidth: 0 }]}
+            onPress={() => router.push('/admin/reports' as Href)}
+          >
+            <View style={styles.menuLeft}>
+              <Feather name="shield" size={20} color="#333" />
+              <Text style={styles.menuText}>신고 관리</Text>
+            </View>
+            <Feather name="chevron-right" size={20} color="#ccc" />
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* 고객지원 그룹 */}
       <View style={[styles.menuGroupCard, { marginBottom: 30 }]}>

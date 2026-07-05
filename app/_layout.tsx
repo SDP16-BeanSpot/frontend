@@ -34,6 +34,9 @@ function RootLayoutNav({ colorScheme }: { colorScheme: string | null | undefined
             <Stack.Screen name="posting/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="notifications" options={{ headerShown: false }} />
             <Stack.Screen name="search" options={{ headerShown: false }} />
+            <Stack.Screen name="admin/announcementCreate" options={{ headerShown: false }} />
+            <Stack.Screen name="admin/reports/index" options={{ headerShown: false }} />
+            <Stack.Screen name="admin/reports/[id]" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
         </GestureHandlerRootView>
