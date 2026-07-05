@@ -11,17 +11,19 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { login } from '../../features/auth/api';
+import { ApiError } from '../../features/shared/apiClient';
 
 export default function LoginPage() {
-  const [phoneNumber, setPhoneNumber] = useState('');
+  const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   // 모든 필드가 입력되었는지 확인
   const isFormValid = useMemo(() => {
-    return phoneNumber.trim().length > 0 && password.trim().length > 0;
-  }, [phoneNumber, password]);
+    return userId.trim().length > 0 && password.trim().length > 0;
+  }, [userId, password]);
 
   // 비밀번호 표시/숨기기 토글
   const togglePasswordVisibility = () => {
@@ -30,33 +32,20 @@ export default function LoginPage() {
 
   // 로그인 처리
   const handleLogin = async () => {
-    if (!phoneNumber || !password) {
-      Alert.alert('알림', '휴대폰 번호와 비밀번호를 입력해주세요.');
-      return;
-    }
-
-    if (password.length < 8) {
-      Alert.alert('알림', '비밀번호는 8자리 이상 입력해주세요.');
+    if (!userId || !password) {
+      Alert.alert('알림', '아이디와 비밀번호를 입력해주세요.');
       return;
     }
 
     setIsLoading(true);
-    
     try {
-      console.log('로그인 시도:', { phoneNumber, password });
-      
-      // 실제 로그인 API 호출 (시뮬레이션)
-      setTimeout(() => {
-        setIsLoading(false);
-        Alert.alert('성공', '로그인되었습니다!', [
-          { text: '확인', onPress: () => router.replace('/(tabs)/home') }
-        ]);
-      }, 2000);
-      
+      await login({ userId: userId.trim(), password });
+      router.replace('/(tabs)/home');
     } catch (err) {
+      const message = err instanceof ApiError ? err.message : '로그인에 실패했습니다.';
+      Alert.alert('오류', message);
+    } finally {
       setIsLoading(false);
-      console.error(err);
-      Alert.alert('오류', '로그인에 실패했습니다.');
     }
   };
 
@@ -80,16 +69,15 @@ export default function LoginPage() {
 
         {/* 입력 폼 */}
         <View style={styles.form}>
-          {/* 휴대폰 번호 입력 */}
+          {/* 아이디 입력 */}
           <View style={styles.inputContainer}>
-            <Text style={styles.label}>휴대폰 번호</Text>
+            <Text style={styles.label}>아이디</Text>
             <TextInput
               style={styles.input}
-              placeholder="휴대폰 번호 (-없이 숫자만 입력)"
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              keyboardType="phone-pad"
-              maxLength={11}
+              placeholder="아이디를 입력하세요"
+              value={userId}
+              onChangeText={setUserId}
+              autoCapitalize="none"
               autoCorrect={false}
             />
           </View>
@@ -120,13 +108,6 @@ export default function LoginPage() {
             </View>
           </View>
 
-          {/* 비밀번호 안내 메시지 */}
-          <View style={styles.passwordHintContainer}>
-            <Text style={styles.passwordHint}>
-              비밀번호를 5자리이상은{' '}
-              <Text style={styles.passwordHintBold}>8자리 이상</Text>
-            </Text>
-          </View>
         </View>
       </View>
 
@@ -234,19 +215,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 12,
     padding: 8,
-  },
-
-  // 비밀번호 안내
-  passwordHintContainer: {
-    marginTop: 8,
-  },
-  passwordHint: {
-    fontSize: 14,
-    color: '#666666',
-  },
-  passwordHintBold: {
-    fontWeight: '600',
-    color: '#00D664',
   },
 
   // 하단 버튼

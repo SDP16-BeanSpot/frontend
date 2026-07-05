@@ -63,6 +63,9 @@ export const getAccessToken = async (): Promise<string | null> => {
   return stored || process.env.EXPO_PUBLIC_AUTH_TOKEN || null;
 };
 
+export const setAccessToken = (token: string) => tokenStorage.set(ACCESS_TOKEN_KEY, token);
+export const clearAccessToken = () => tokenStorage.remove(ACCESS_TOKEN_KEY);
+
 // ─── 에러 타입 ──────────────────────────────────────────────────────────────
 
 export class ApiError extends Error {
@@ -75,6 +78,29 @@ export class ApiError extends Error {
     this.status = status;
     this.body = body;
   }
+}
+
+/**
+ * 백엔드 공통 응답 포맷: { success, data, error }.
+ * (Beanspot Backend API 대부분의 엔드포인트가 이 형태로 감싸서 응답함 — 단, 일부
+ *  구버전 엔드포인트(/api/v1/todos, /api/announcement 목록 등)는 봉투 없이 raw 값을 그대로 줌)
+ */
+export interface ApiEnvelope<T> {
+  success: boolean;
+  data: T;
+  error: { code: number; message: string } | null;
+}
+
+/** 봉투를 벗기고 data 를 반환. success:false 면 ApiError 로 throw */
+export function unwrap<T>(envelope: ApiEnvelope<T>): T {
+  if (!envelope?.success) {
+    throw new ApiError(
+      envelope?.error?.message ?? '요청이 실패했습니다.',
+      envelope?.error?.code ?? 0,
+      envelope,
+    );
+  }
+  return envelope.data;
 }
 
 // ─── 요청 함수 ──────────────────────────────────────────────────────────────
@@ -91,7 +117,7 @@ type RequestOptions = {
   params?: Record<string, string | number | boolean | undefined | null>;
 };
 
-type BodyInitLike = Record<string, unknown> | unknown[] | FormData | string | null;
+type BodyInitLike = object | unknown[] | FormData | string | null;
 
 function buildUrl(base: string, path: string, params?: RequestOptions['params']): string {
   const url = `${base}${path.startsWith('/') ? path : `/${path}`}`;

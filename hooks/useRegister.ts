@@ -1,46 +1,39 @@
 // /hooks/useRegister.ts
 import { useState } from 'react';
-
-interface RegisterResult {
-  success: boolean;
-  user?: {
-    id: number;
-    email: string;
-    nickname: string;
-    // 필요시 추가
-  };
-  token?: string; // JWT 등
-  error?: string;
-}
+import { signup, checkUserId } from '../features/auth/api';
+import { ApiError } from '../features/shared/apiClient';
+import type { AuthRequest, CheckAvailabilityResult } from '../features/auth/types';
 
 export function useRegister() {
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [user, setUser] = useState<RegisterResult['user'] | null>(null);
+  const [checkingLoading, setCheckingLoading] = useState(false);
 
-  const register = async (email: string, password: string, nickname: string) => {
+  const register = async (
+    payload: AuthRequest,
+  ): Promise<{ ok: boolean; error?: string }> => {
     setLoading(true);
-    setError('');
-    setUser(null);
-
     try {
-      const response = await fetch('https://your-backend.com/api/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, nickname }),
-      });
-      const result: RegisterResult = await response.json();
-
-      if (result.success) {
-        setUser(result.user || null);
-      } else {
-        setError(result.error || '회원가입 실패');
-      }
-    } catch (e: any) {
-      setError(e?.message || '서버 오류');
+      await signup(payload);
+      return { ok: true };
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : '서버 오류가 발생했습니다.';
+      return { ok: false, error: message };
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  return { register, loading, error, user };
+  const checkingId = async (userId: string): Promise<CheckAvailabilityResult | null> => {
+    setCheckingLoading(true);
+    try {
+      return await checkUserId(userId);
+    } catch (error) {
+      const message = error instanceof ApiError ? error.message : '중복 확인에 실패했습니다.';
+      return { available: false, value: userId, type: 'userId', message };
+    } finally {
+      setCheckingLoading(false);
+    }
+  };
+
+  return { register, checkingId, loading, checkingLoading };
 }
