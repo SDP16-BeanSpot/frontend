@@ -1,4 +1,4 @@
-import { api, unwrap, setAccessToken, type ApiEnvelope } from '../shared/apiClient';
+import { api, unwrap, setAccessToken, setUserRole, type ApiEnvelope } from '../shared/apiClient';
 import type {
   AuthRequest,
   AuthResult,
@@ -24,11 +24,28 @@ export const checkNickname = async (nickname: string): Promise<CheckAvailability
     }),
   );
 
-/** 로그인/회원가입 성공 응답에서 토큰을 뽑아 저장. 필드명은 추정이라 실제 응답 보고 조정 필요 */
+/**
+ * 응답 어딘가에서 role(USER/ADMIN) 값을 유연하게 찾아냄.
+ * 백엔드 응답 스키마가 Swagger 상 object 로만 표시돼 있어 필드 위치가 불명이라
+ * result.role / result.user.role 두 위치를 검사합니다.
+ */
+function extractRole(result: AuthResult): string | null {
+  const direct = (result as Record<string, unknown>)?.role;
+  if (direct === 'ADMIN' || direct === 'USER') return direct;
+  const nested = (result?.user as Record<string, unknown> | undefined)?.role;
+  if (nested === 'ADMIN' || nested === 'USER') return nested as string;
+  return null;
+}
+
+/** 로그인/회원가입 성공 응답에서 토큰/역할을 뽑아 저장. 필드명은 추정이라 실제 응답 보고 조정 필요 */
 async function persistTokenIfPresent(result: AuthResult): Promise<AuthResult> {
   const token = result?.token ?? result?.accessToken;
   if (typeof token === 'string' && token) {
     await setAccessToken(token);
+  }
+  const role = extractRole(result);
+  if (role) {
+    await setUserRole(role);
   }
   return result;
 }
@@ -73,5 +90,12 @@ export const kakaoLoginWithCode = async (code: string): Promise<AuthResult> => {
   return persistTokenIfPresent(result);
 };
 
-export const getProfile = async (): Promise<Record<string, unknown>> =>
-  unwrap(await api.get<ApiEnvelope<Record<string, unknown>>>('/api/user/me'));
+export const getProfile = async (): Promise<Record<string, unknown>> => {
+  const profile = unwrap(await api.get<ApiEnvelope<Record<string, unknown>>>('/api/user/me'));
+  // 프로필 조회 시에도 role 을 최신화 (로그인 응답에 role 이 없었을 경우 대비)
+  const role = extractRole(profile as AuthResult);
+  if (role) {
+    await setUserRole(role);
+  }
+  return profile;
+};

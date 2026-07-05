@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { login } from '../../features/auth/api';
+import { getProfile, login } from '../../features/auth/api';
 import { ApiError } from '../../features/shared/apiClient';
 
 export default function LoginPage() {
@@ -40,6 +40,8 @@ export default function LoginPage() {
     setIsLoading(true);
     try {
       await login({ userId: userId.trim(), password });
+      // 로그인 응답에 role 이 없을 수 있어 프로필 조회로 역할(관리자 여부)을 확보
+      await getProfile().catch(() => {});
       router.replace('/(tabs)/home');
     } catch (err) {
       const message = err instanceof ApiError ? err.message : '로그인에 실패했습니다.';

@@ -15,6 +15,7 @@ export const WS_URL = process.env.EXPO_PUBLIC_WS_URL ?? '';
 
 export const ACCESS_TOKEN_KEY = 'user_jwt_token';
 export const REFRESH_TOKEN_KEY = 'user_jwt_refresh_token';
+export const USER_ROLE_KEY = 'user_role';
 
 const DEFAULT_TIMEOUT_MS = 15000;
 
@@ -65,6 +66,12 @@ export const getAccessToken = async (): Promise<string | null> => {
 
 export const setAccessToken = (token: string) => tokenStorage.set(ACCESS_TOKEN_KEY, token);
 export const clearAccessToken = () => tokenStorage.remove(ACCESS_TOKEN_KEY);
+
+// ─── 사용자 역할 (USER / ADMIN) ─────────────────────────────────────────────
+
+export const getUserRole = async (): Promise<string | null> => tokenStorage.get(USER_ROLE_KEY);
+export const setUserRole = (role: string) => tokenStorage.set(USER_ROLE_KEY, role);
+export const clearUserRole = () => tokenStorage.remove(USER_ROLE_KEY);
 
 // ─── 에러 타입 ──────────────────────────────────────────────────────────────
 
