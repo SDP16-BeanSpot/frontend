@@ -13,6 +13,7 @@ export default function AuthLayout() {
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
       <Stack.Screen name="id_verification" />
+      <Stack.Screen name="complete" />
     </Stack>
   );
 }

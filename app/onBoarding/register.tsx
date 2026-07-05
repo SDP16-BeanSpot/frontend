@@ -54,7 +54,10 @@ export default function RegisterPage() {
     });
 
     if (result.ok) {
-      router.replace('/onBoarding/id_verification');
+      router.replace({
+        pathname: '/onBoarding/id_verification',
+        params: { nickname: nickname.trim() },
+      });
     } else {
       Alert.alert('회원가입 실패', result.error ?? '잠시 후 다시 시도해주세요.');
     }

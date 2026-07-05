@@ -11,7 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 // 통신사 옵션 리스트
 const CARRIERS = [
@@ -24,6 +24,7 @@ const CARRIERS = [
 ];
 
 export default function IdVerificationPage() {
+  const { nickname: registeredNickname } = useLocalSearchParams<{ nickname?: string }>();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [selectedCarrier, setSelectedCarrier] = useState('');
   const [name, setName] = useState('');
@@ -118,12 +119,14 @@ export default function IdVerificationPage() {
         socialNumber
       });
       
-      // 실제 본인인증 API 호출 (시뮬레이션)
+      // ⚠️ SMS 본인인증 관련 백엔드 엔드포인트가 아직 없어 시뮬레이션으로 대체합니다.
       setTimeout(() => {
         setIsLoading(false);
-        Alert.alert('성공', '본인인증이 완료되었습니다!', [
-          { text: '확인', onPress: () => router.replace('/') }
-        ]);
+        const finalNickname = registeredNickname ?? name;
+        router.replace({
+          pathname: '/onBoarding/complete',
+          params: { nickname: finalNickname },
+        });
       }, 2000);
       
     } catch (err) {
