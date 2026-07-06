@@ -12,50 +12,57 @@ import {
   View,
 } from 'react-native';
 import { createChatReport } from '../../../features/chat/api';
-
-const MAX_REPORT_LENGTH = 200;
+import {
+  REPORT_CONTENT_MAX_LENGTH,
+  REPORT_CONTENT_MIN_LENGTH,
+  REPORT_TYPE_LABELS,
+  type ReportType,
+} from '../../../features/shared/reportTypes';
 
 const ChatReportWriteScreen = () => {
   const router = useRouter();
-  const { reason, chatId } = useLocalSearchParams<{
-    reason?: string | string[];
+  const { reportType, chatId, messageId } = useLocalSearchParams<{
+    reportType?: string | string[];
     chatId?: string | string[];
+    messageId?: string | string[];
   }>();
   const [content, setContent] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const selectedReason = useMemo(() => {
-    if (Array.isArray(reason)) {
-      return reason[0] ?? '기타';
-    }
-    return reason ?? '기타';
-  }, [reason]);
+  const selectedType = useMemo<ReportType>(() => {
+    const value = Array.isArray(reportType) ? reportType[0] : reportType;
+    return (value as ReportType) ?? 'OTHER';
+  }, [reportType]);
   const normalizedChatId = useMemo(() => {
-    if (Array.isArray(chatId)) {
-      return chatId[0];
-    }
+    if (Array.isArray(chatId)) return chatId[0];
     return chatId;
   }, [chatId]);
+  const normalizedMessageId = useMemo(() => {
+    if (Array.isArray(messageId)) return messageId[0];
+    return messageId;
+  }, [messageId]);
+
+  const trimmedLength = content.trim().length;
+  const isTooShort = trimmedLength > 0 && trimmedLength < REPORT_CONTENT_MIN_LENGTH;
+  const canSubmit = trimmedLength >= REPORT_CONTENT_MIN_LENGTH;
 
   const submitReport = async () => {
     const trimmed = content.trim();
-    if (!trimmed) {
-      Alert.alert('신고 내용을 입력해주세요.');
+    if (trimmed.length < REPORT_CONTENT_MIN_LENGTH) {
+      Alert.alert('알림', `신고 내용을 ${REPORT_CONTENT_MIN_LENGTH}자 이상 입력해주세요.`);
       return;
     }
 
-    if (!normalizedChatId) {
-      Alert.alert('채팅방 정보가 없어 신고할 수 없어요.');
+    if (!normalizedMessageId) {
+      Alert.alert('알림', '신고할 메시지 정보가 없어요.');
       return;
     }
 
-    if (submitting) {
-      return;
-    }
+    if (submitting) return;
 
     setSubmitting(true);
-    const result = await createChatReport(normalizedChatId, {
-      reason: selectedReason,
+    const result = await createChatReport(normalizedMessageId, {
+      reportType: selectedType,
       content: trimmed,
     });
     setSubmitting(false);
@@ -65,17 +72,22 @@ const ChatReportWriteScreen = () => {
       return;
     }
 
-    Alert.alert('신고가 접수되었어요.', '검토 후 조치할게요.', [
-      {
-        text: '확인',
-        onPress: () => {
-          router.replace({
-            pathname: '/chat/[id]',
-            params: { id: normalizedChatId },
-          });
+    Alert.alert(
+      '신고가 접수되었어요.',
+      '검토 후 조치할게요. 신고 접수 즉시 해당 채팅방에는 더 이상 메시지를 보낼 수 없어요.',
+      [
+        {
+          text: '확인',
+          onPress: () => {
+            if (normalizedChatId) {
+              router.replace({ pathname: '/chat/[id]', params: { id: normalizedChatId } });
+            } else {
+              router.back();
+            }
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   return (
@@ -90,31 +102,39 @@ const ChatReportWriteScreen = () => {
       </View>
 
       <View style={styles.content}>
-        <Text style={styles.reasonText}>{selectedReason}</Text>
-        <Text style={styles.descriptionLabel}>신고 내용을 입력해주세요.</Text>
+        <Text style={styles.reasonText}>{REPORT_TYPE_LABELS[selectedType]}</Text>
         <View style={styles.inputWrapper}>
           <TextInput
             style={styles.input}
             value={content}
             onChangeText={setContent}
             multiline
-            maxLength={MAX_REPORT_LENGTH}
-            placeholder="상세 내용을 작성해주세요."
+            maxLength={REPORT_CONTENT_MAX_LENGTH}
+            placeholder="신고할 내용을 입력해주세요."
             placeholderTextColor="#BDBDBD"
             textAlignVertical="top"
           />
-          <Text style={styles.counterText}>{content.length}/{MAX_REPORT_LENGTH}</Text>
+          <Text style={[styles.counterText, isTooShort && styles.counterTextWarn]}>
+            {content.length}/{REPORT_CONTENT_MAX_LENGTH}
+          </Text>
         </View>
+        {isTooShort && (
+          <Text style={styles.warnText}>
+            최소 {REPORT_CONTENT_MIN_LENGTH}자 이상 입력해주세요. ({trimmedLength}/
+            {REPORT_CONTENT_MIN_LENGTH})
+          </Text>
+        )}
         <Text style={styles.noticeText}>
-          허위 신고는 신고자에게 더 큰 불이익을 줄 수 있으며, 반복적인 신고는 이용 제한 사유가 될 수 있어요.
+          이 항목으로 신고하면 더 이상 해당 채팅방에 메시지를 보낼 수 없어요.{'\n'}
+          (마이페이지 {'>'} 신고 탭에서 차단을 취소할 수 있어요.)
         </Text>
       </View>
 
       <View style={styles.footer}>
         <TouchableOpacity
-          style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
+          style={[styles.submitButton, !canSubmit && styles.submitButtonDisabled]}
           onPress={() => void submitReport()}
-          disabled={submitting}
+          disabled={!canSubmit || submitting}
         >
           {submitting ? (
             <ActivityIndicator size="small" color="#FFFFFF" />
@@ -160,17 +180,12 @@ const styles = StyleSheet.create({
     paddingTop: 18,
   },
   reasonText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#616161',
-  },
-  descriptionLabel: {
-    marginTop: 10,
-    fontSize: 11,
-    color: '#9E9E9E',
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#212121',
   },
   inputWrapper: {
-    marginTop: 8,
+    marginTop: 12,
     borderRadius: 10,
     backgroundColor: '#F5F5F7',
     paddingHorizontal: 12,
@@ -190,6 +205,14 @@ const styles = StyleSheet.create({
     color: '#9E9E9E',
     textAlign: 'right',
   },
+  counterTextWarn: {
+    color: '#FF5252',
+  },
+  warnText: {
+    marginTop: 6,
+    fontSize: 11,
+    color: '#FF5252',
+  },
   noticeText: {
     marginTop: 12,
     fontSize: 10,
@@ -208,7 +231,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   submitButtonDisabled: {
-    opacity: 0.8,
+    backgroundColor: '#C8E6C9',
   },
   submitText: {
     color: '#FFFFFF',
@@ -216,4 +239,3 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 });
-

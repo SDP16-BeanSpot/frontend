@@ -1,23 +1,15 @@
-// import React from 'react';
+import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-const REPORT_REASONS = [
-  '부적절한 언행 및 욕설을 사용했어요',
-  '성적 언행 및 은밀한 제안을 했어요',
-  '근로환경 고충이 있어요',
-  '동네/근교에서 비매너를 보였어요',
-  '스팸/도배를 했어요',
-  '불편한 대화를 했어요',
-  '기타',
-];
+import { REPORT_TYPE_LABELS, REPORT_TYPES } from '../../../features/shared/reportTypes';
 
 const ChatReportReasonScreen = () => {
   const router = useRouter();
-  const { chatId } = useLocalSearchParams<{ chatId?: string }>();
+  const { chatId, messageId } = useLocalSearchParams<{ chatId?: string; messageId?: string }>();
   const normalizedChatId = Array.isArray(chatId) ? chatId[0] : chatId;
+  const normalizedMessageId = Array.isArray(messageId) ? messageId[0] : messageId;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -31,18 +23,22 @@ const ChatReportReasonScreen = () => {
       </View>
 
       <View style={styles.list}>
-        {REPORT_REASONS.map((reason) => (
+        {REPORT_TYPES.map((reportType) => (
           <TouchableOpacity
-            key={reason}
+            key={reportType}
             style={styles.listItem}
             onPress={() =>
               router.push({
                 pathname: '/chat/report/write',
-                params: { reason, chatId: normalizedChatId },
+                params: {
+                  reportType,
+                  chatId: normalizedChatId,
+                  messageId: normalizedMessageId,
+                },
               })
             }
           >
-            <Text style={styles.listItemText}>{reason}</Text>
+            <Text style={styles.listItemText}>{REPORT_TYPE_LABELS[reportType]}</Text>
             <Ionicons name="chevron-forward" size={16} color="#9E9E9E" />
           </TouchableOpacity>
         ))}

@@ -1,3 +1,7 @@
+import type { ReportStatus, ReportType } from '../shared/reportTypes';
+export type { ReportStatus, ReportType } from '../shared/reportTypes';
+export { REPORT_STATUS_LABELS, REPORT_TYPE_SHORT_LABELS as REPORT_TYPE_LABELS } from '../shared/reportTypes';
+
 /**
  * 관리자용 공고/신고 API 타입 (Beanspot Backend Swagger 실측 기반, 2026-07-05).
  */
@@ -59,33 +63,7 @@ export interface AnnouncementUpdateRequest {
 }
 
 // ─── 신고 관리 ──────────────────────────────────────────────────────────────
-
-export type ReportStatus = 'PENDING' | 'COMPLETED' | 'REJECTED';
-
-export type ReportType =
-  | 'INAPPROPRIATE_LANGUAGE'
-  | 'SEXUAL_LANGUAGE'
-  | 'FINANCIAL_REQUEST'
-  | 'ADVERTISEMENT'
-  | 'SPAM'
-  | 'OFFENSIVE'
-  | 'OTHER';
-
-export const REPORT_TYPE_LABELS: Record<ReportType, string> = {
-  INAPPROPRIATE_LANGUAGE: '부적절한 언어',
-  SEXUAL_LANGUAGE: '성적인 언어',
-  FINANCIAL_REQUEST: '금전 요구',
-  ADVERTISEMENT: '광고',
-  SPAM: '스팸',
-  OFFENSIVE: '불쾌감 유발',
-  OTHER: '기타',
-};
-
-export const REPORT_STATUS_LABELS: Record<ReportStatus, string> = {
-  PENDING: '대기중',
-  COMPLETED: '처리 완료',
-  REJECTED: '반려',
-};
+// ReportType/ReportStatus 는 ../shared/reportTypes 에서 가져옵니다 (채팅 신고와 공유).
 
 /** GET /api/admin/reports 목록 항목 (AdminReportListResponse) */
 export interface AdminReportListItem {

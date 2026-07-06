@@ -1,6 +1,6 @@
 import type { ApiResult, BackendChatItem, ChatItem, ChatReportPayload, ChatRoom } from './types';
 import { MOCK_CHAT_DATA, MOCK_ROOMS } from './mock';
-import { api, isApiConfigured } from '../shared/apiClient';
+import { api, isApiConfigured, unwrap, type ApiEnvelope } from '../shared/apiClient';
 
 // ⚠️ 엔드포인트 경로는 추정값입니다. Swagger 확인 후 수정하세요.
 
@@ -55,13 +55,19 @@ export const deleteChat = async (id: string): Promise<ApiResult> => {
   }
 };
 
+/**
+ * 메시지 신고 — 실제 확인된 엔드포인트: POST /api/chat/messages/{messageId}/report
+ * (백엔드는 "채팅방" 단위가 아니라 "메시지" 단위로 신고를 받습니다.)
+ */
 export const createChatReport = async (
-  chatId: string,
+  messageId: string,
   payload: ChatReportPayload,
 ): Promise<ApiResult> => {
   if (!isApiConfigured()) return { ok: false, skipped: true };
   try {
-    await api.post(`/chats/${chatId}/reports`, payload);
+    await unwrap(
+      await api.post<ApiEnvelope<unknown>>(`/api/chat/messages/${messageId}/report`, payload),
+    );
     return { ok: true };
   } catch (error: any) {
     const message = typeof error?.message === 'string' ? error.message : '';

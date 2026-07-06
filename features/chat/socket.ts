@@ -1,5 +1,6 @@
 import { Client, type IMessage, type StompSubscription } from '@stomp/stompjs';
 import { WS_URL, getAccessToken } from '../shared/apiClient';
+import type { ReactionType } from './types';
 
 /**
  * 채팅 실시간(STOMP over WebSocket) 클라이언트.
@@ -7,21 +8,28 @@ import { WS_URL, getAccessToken } from '../shared/apiClient';
  * ⚠️ 아래 DESTINATIONS 는 Spring STOMP 의 일반적인 관례로 채워둔 값입니다.
  *    Notion 웹소켓 문서(구독/발행 경로, 메시지 payload 스펙)를 받으면
  *    이 상수와 아래 타입만 맞추면 바로 동작합니다.
+ *
+ * ⚠️ 리액션/답장 발행 경로(publishReaction)는 Swagger REST 스펙에 대응 엔드포인트가
+ *    없어 STOMP로만 처리된다고 추정한 것입니다. 실제 목적지 경로는 미확인입니다.
  */
 const DESTINATIONS = {
   // 방 구독 경로 (서버 → 클라이언트). {roomId} 치환
   subscribeRoom: (roomId: string) => `/sub/chat/room/${roomId}`,
   // 메시지 발행 경로 (클라이언트 → 서버)
   publishMessage: '/pub/chat/message',
+  // ⚠️ 미확인: 리액션 토글 발행 경로 (추정)
+  publishReaction: '/pub/chat/reaction',
 };
 
 /** 서버에서 내려오는 메시지 payload (Notion 스펙에 맞춰 수정) */
 export interface IncomingChatMessage {
   roomId: string;
+  messageId?: string;
   senderId: string;
   senderNickname?: string;
   content: string;
   createdAt: string;
+  parentMsgId?: string;
   [key: string]: unknown;
 }
 
@@ -29,6 +37,15 @@ export interface IncomingChatMessage {
 export interface OutgoingChatMessage {
   roomId: string;
   content: string;
+  /** 답장 대상 메시지 id (일반 메시지면 생략) */
+  parentMsgId?: string;
+}
+
+/** ⚠️ 미확인 — 리액션 토글 발행 payload (추정) */
+export interface OutgoingReaction {
+  roomId: string;
+  messageId: string;
+  reactionType: ReactionType;
 }
 
 type ConnectionListener = (connected: boolean) => void;
@@ -101,7 +118,7 @@ class ChatSocketClient {
     };
   }
 
-  /** 메시지 발행 */
+  /** 메시지 발행 (parentMsgId 를 포함하면 답장으로 전송됨) */
   sendMessage(payload: OutgoingChatMessage): void {
     if (!this.client?.connected) {
       console.warn('[chat socket] 연결되지 않아 메시지를 보낼 수 없습니다.');
@@ -109,6 +126,22 @@ class ChatSocketClient {
     }
     this.client.publish({
       destination: DESTINATIONS.publishMessage,
+      body: JSON.stringify(payload),
+    });
+  }
+
+  /**
+   * 리액션 토글 발행.
+   * ⚠️ 목적지/payload 형태가 미확인 상태입니다. 실패해도 조용히 무시되므로
+   *    (연결 안 됐을 때 경고만 출력) 화면 자체는 낙관적 업데이트로 계속 동작합니다.
+   */
+  sendReaction(payload: OutgoingReaction): void {
+    if (!this.client?.connected) {
+      console.warn('[chat socket] 연결되지 않아 리액션을 보낼 수 없습니다. (로컬에만 반영됨)');
+      return;
+    }
+    this.client.publish({
+      destination: DESTINATIONS.publishReaction,
       body: JSON.stringify(payload),
     });
   }
