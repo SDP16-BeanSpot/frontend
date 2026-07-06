@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { chatSocket, type IncomingChatMessage } from './socket';
 import { WS_URL } from '../shared/apiClient';
+import type { ReactionType } from './types';
 
 /**
  * 채팅방 실시간 연결 훅.
@@ -46,12 +47,20 @@ export function useChatSocket(
   }, [roomId]);
 
   const sendMessage = useCallback(
-    (content: string) => {
+    (content: string, parentMsgId?: string) => {
       if (!roomId) return;
-      chatSocket.sendMessage({ roomId, content });
+      chatSocket.sendMessage({ roomId, content, parentMsgId });
     },
     [roomId],
   );
 
-  return { connected, sendMessage };
+  const sendReaction = useCallback(
+    (messageId: string, reactionType: ReactionType) => {
+      if (!roomId) return;
+      chatSocket.sendReaction({ roomId, messageId, reactionType });
+    },
+    [roomId],
+  );
+
+  return { connected, sendMessage, sendReaction };
 }
