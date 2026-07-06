@@ -1,4 +1,4 @@
-import type { BackendChatItem, ChatRoom } from './types';
+import type { BackendChatItem, BlockedRoom, ChatRoom } from './types';
 
 export const MOCK_CHAT_DATA: BackendChatItem[] = [
   {
@@ -108,5 +108,15 @@ export const MOCK_ROOMS: ChatRoom[] = [
     dday: '마감',
     thumbnailUrl: '',
     messages: [],
+  },
+];
+
+export const MOCK_BLOCKED_ROOMS: BlockedRoom[] = [
+  {
+    roomId: '3',
+    roomTitle: '지구야 에코라이프로 약속할게',
+    thumbnailUrl: '',
+    reportType: 'SPAM',
+    reportedAt: '2025.12.01',
   },
 ];

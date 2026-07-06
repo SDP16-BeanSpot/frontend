@@ -78,3 +78,16 @@ export type ChatReportPayload = {
   reportType: ReportType;
   content: string;
 };
+
+/**
+ * 마이페이지 > 신고 탭에 표시되는, 내가 신고해서 차단된 채팅방.
+ * ⚠️ 백엔드에 대응하는 "내 신고 내역" 조회 엔드포인트가 없습니다.
+ *    (관리자용 GET /api/admin/reports 만 존재) — 확인 전까지 mock 으로만 동작합니다.
+ */
+export interface BlockedRoom {
+  roomId: string;
+  roomTitle: string;
+  thumbnailUrl: string;
+  reportType: ReportType;
+  reportedAt: string;
+}
