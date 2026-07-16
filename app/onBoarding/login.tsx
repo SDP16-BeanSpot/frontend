@@ -12,13 +12,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getProfile, login } from '../../features/auth/api';
-import { ApiError } from '../../features/shared/apiClient';
+import { ApiError, tokenStorage } from '../../features/shared/apiClient';
+
+const AUTO_LOGIN_KEY = 'auto_login_enabled';
 
 export default function LoginPage() {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [autoLogin, setAutoLogin] = useState(true);
 
   // 모든 필드가 입력되었는지 확인
   const isFormValid = useMemo(() => {
@@ -42,6 +45,9 @@ export default function LoginPage() {
       await login({ userId: userId.trim(), password });
       // 로그인 응답에 role 이 없을 수 있어 프로필 조회로 역할(관리자 여부)을 확보
       await getProfile().catch(() => {});
+      // ⚠️ 앱 시작 시 토큰 유무로 자동 로그인 여부를 판단하는 화면이 아직 없어
+      //    이 값은 우선 저장만 해두고, 추후 시작 화면에서 참조하면 됩니다.
+      await tokenStorage.set(AUTO_LOGIN_KEY, autoLogin ? '1' : '0');
       router.replace('/(tabs)/home');
     } catch (err) {
       const message = err instanceof ApiError ? err.message : '로그인에 실패했습니다.';
@@ -110,14 +116,26 @@ export default function LoginPage() {
             </View>
           </View>
 
+          <TouchableOpacity
+            style={styles.autoLoginRow}
+            onPress={() => setAutoLogin(!autoLogin)}
+            hitSlop={8}
+          >
+            <Ionicons
+              name={autoLogin ? 'checkbox' : 'square-outline'}
+              size={20}
+              color={autoLogin ? '#00D664' : '#CCCCCC'}
+            />
+            <Text style={styles.autoLoginText}>자동 로그인</Text>
+          </TouchableOpacity>
         </View>
       </View>
 
       {/* 하단 고정 버튼 */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={[
-            styles.nextButton, 
+            styles.nextButton,
             isFormValid ? styles.nextButtonActive : styles.nextButtonInactive
           ]}
           onPress={handleLogin}
@@ -130,6 +148,20 @@ export default function LoginPage() {
             {isLoading ? '로그인 중...' : '다음'}
           </Text>
         </TouchableOpacity>
+
+        <View style={styles.linkRow}>
+          <TouchableOpacity onPress={() => router.push('/onBoarding/findId' as any)}>
+            <Text style={styles.linkText}>아이디 찾기</Text>
+          </TouchableOpacity>
+          <Text style={styles.linkDivider}>|</Text>
+          <TouchableOpacity onPress={() => router.push('/onBoarding/findPassword' as any)}>
+            <Text style={styles.linkText}>비밀번호 찾기</Text>
+          </TouchableOpacity>
+          <Text style={styles.linkDivider}>|</Text>
+          <TouchableOpacity onPress={() => router.push('/onBoarding/register')}>
+            <Text style={styles.linkText}>회원가입</Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -219,11 +251,39 @@ const styles = StyleSheet.create({
     padding: 8,
   },
 
+  // 자동 로그인
+  autoLoginRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 4,
+  },
+  autoLoginText: {
+    fontSize: 14,
+    color: '#666666',
+  },
+
   // 하단 버튼
   buttonContainer: {
     paddingHorizontal: 24,
     paddingBottom: 34,
     paddingTop: 16,
+  },
+  linkRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 18,
+  },
+  linkText: {
+    fontSize: 13,
+    color: '#999999',
+    fontWeight: '500',
+  },
+  linkDivider: {
+    fontSize: 12,
+    color: '#E0E0E0',
   },
   nextButton: {
     paddingVertical: 16,
