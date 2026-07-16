@@ -73,6 +73,16 @@ export const getUserRole = async (): Promise<string | null> => tokenStorage.get(
 export const setUserRole = (role: string) => tokenStorage.set(USER_ROLE_KEY, role);
 export const clearUserRole = () => tokenStorage.remove(USER_ROLE_KEY);
 
+// ─── 자동 로그인 ─────────────────────────────────────────────────────────────
+// 로그인 화면의 "자동 로그인" 체크박스 값. 앱 시작 화면(app/index.tsx)이 이 값과
+// 토큰 존재 여부를 함께 확인해 로그인 화면을 건너뛸지 결정합니다.
+
+export const AUTO_LOGIN_KEY = 'auto_login_enabled';
+export const isAutoLoginEnabled = async (): Promise<boolean> =>
+  (await tokenStorage.get(AUTO_LOGIN_KEY)) === '1';
+export const setAutoLoginEnabled = (enabled: boolean) =>
+  tokenStorage.set(AUTO_LOGIN_KEY, enabled ? '1' : '0');
+
 // ─── 에러 타입 ──────────────────────────────────────────────────────────────
 
 export class ApiError extends Error {

@@ -12,9 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { getProfile, login } from '../../features/auth/api';
-import { ApiError, tokenStorage } from '../../features/shared/apiClient';
-
-const AUTO_LOGIN_KEY = 'auto_login_enabled';
+import { ApiError, setAutoLoginEnabled } from '../../features/shared/apiClient';
 
 export default function LoginPage() {
   const [userId, setUserId] = useState('');
@@ -45,9 +43,7 @@ export default function LoginPage() {
       await login({ userId: userId.trim(), password });
       // 로그인 응답에 role 이 없을 수 있어 프로필 조회로 역할(관리자 여부)을 확보
       await getProfile().catch(() => {});
-      // ⚠️ 앱 시작 시 토큰 유무로 자동 로그인 여부를 판단하는 화면이 아직 없어
-      //    이 값은 우선 저장만 해두고, 추후 시작 화면에서 참조하면 됩니다.
-      await tokenStorage.set(AUTO_LOGIN_KEY, autoLogin ? '1' : '0');
+      await setAutoLoginEnabled(autoLogin);
       router.replace('/(tabs)/home');
     } catch (err) {
       const message = err instanceof ApiError ? err.message : '로그인에 실패했습니다.';
