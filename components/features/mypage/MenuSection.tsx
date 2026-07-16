@@ -77,7 +77,7 @@ const MenuSection = () => {
       {/* 고객지원 그룹 */}
       <View style={[styles.menuGroupCard, { marginBottom: 30 }]}>
         <Text style={styles.groupLabel}>고객지원</Text>
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/mypage/notice' as Href)}>
           <View style={styles.menuLeft}>
             <Feather name="volume-2" size={20} color="#333" />
             <Text style={styles.menuText}>공지사항</Text>
@@ -85,7 +85,7 @@ const MenuSection = () => {
           <Feather name="chevron-right" size={20} color="#ccc" />
         </TouchableOpacity>
         {/* 고객센터 */}
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/mypage/customerCenter' as Href)}>
           <View style={styles.menuLeft}>
             <Feather name="headphones" size={20} color="#333" />
             <Text style={styles.menuText}>고객센터</Text>
@@ -94,7 +94,7 @@ const MenuSection = () => {
         </TouchableOpacity>
 
         {/* 의견 남기기 */}
-        <TouchableOpacity style={styles.menuItem}>
+        <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/mypage/feedback' as Href)}>
           <View style={styles.menuLeft}>
             <Feather name="mail" size={20} color="#333" />
             <Text style={styles.menuText}>의견 남기기</Text>
