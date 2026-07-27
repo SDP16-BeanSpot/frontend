@@ -67,12 +67,11 @@ export default function FindIdResultPage() {
         ) : (
           <View style={styles.emptyState}>
             <Image
-              source={require('../../../assets/images/icon.png')}
+              source={require('../../../assets/images/beanGreen.png')}
               style={styles.mascot}
               resizeMode="contain"
             />
             <Text style={styles.emptyTitle}>계정 정보가 없어요.</Text>
-            <Text style={styles.emptySubtitle}>입력하신 정보로 가입된 계정을 찾을 수 없어요.</Text>
           </View>
         )}
       </View>
@@ -124,8 +123,7 @@ const styles = StyleSheet.create({
   passwordLinkText: { fontSize: 13, color: '#00D664', fontWeight: '600', textDecorationLine: 'underline' },
   emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 60 },
   mascot: { width: 140, height: 140, marginBottom: 20 },
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: '#333333', marginBottom: 8 },
-  emptySubtitle: { fontSize: 13, color: '#999999', textAlign: 'center' },
+  emptyTitle: { fontSize: 14, color: '#999999' },
   buttonContainer: { paddingHorizontal: 24, paddingBottom: 34, paddingTop: 16 },
   nextButton: { paddingVertical: 16, borderRadius: 12, alignItems: 'center', backgroundColor: '#00D664' },
   nextButtonText: { fontSize: 16, fontWeight: '600', color: '#FFFFFF' },
