@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { SCHEDULE_DATA, DIARY_DATA } from '../../../features/calendar/mock';
 import type { CampaignSchedule, TodoItem } from '../../../features/calendar/types';
+import DiaryFace from './DiaryFace';
 
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -12,7 +13,7 @@ interface ScheduleSectionProps {
 }
 
 const ScheduleSection: React.FC<ScheduleSectionProps> = ({ selectedDate, onDiaryPress }) => {
-  const hasDiary = !!DIARY_DATA[selectedDate];
+  const diary = DIARY_DATA[selectedDate];
   const [schedules, setSchedules] = useState<CampaignSchedule[]>(
     SCHEDULE_DATA[selectedDate] ?? [],
   );
@@ -48,8 +49,8 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ selectedDate, onDiary
       <View style={styles.dateHeader}>
         <Text style={styles.dateLabel}>{day}. {dayName}</Text>
         <TouchableOpacity style={styles.diaryRow} onPress={onDiaryPress}>
-          {hasDiary ? (
-            <MaterialCommunityIcons name="emoticon-happy" size={28} color="#4CAF50" />
+          {diary ? (
+            <DiaryFace emotion={diary.emotionType} character={diary.characterType} size={28} />
           ) : (
             <>
               <Text style={styles.diaryHint}>오늘의 일기를 써보아요</Text>

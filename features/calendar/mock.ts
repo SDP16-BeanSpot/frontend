@@ -69,5 +69,26 @@ export const SCHEDULE_DATA: Record<string, CampaignSchedule[]> = {
 };
 
 export const DIARY_DATA: Record<string, DiaryData> = {
-  '2025-12-19': { id: 'd1', character: 'BROWN', emojiIndex: 0, content: '보람찬 하루!' },
+  '2025-12-19': {
+    id: 1,
+    date: '2025-12-19',
+    characterType: 'GREEN',
+    emotionType: 'ANGRY',
+    content:
+      '이 날의 일기 블라블라이 날의 일기 블라블라이 날의 일기 블라블라이 날의 일기 블라블라이 날의 일기 블라블라',
+  },
+  '2025-12-18': {
+    id: 2,
+    date: '2025-12-18',
+    characterType: 'BROWN',
+    emotionType: 'HAPPY',
+    content: '이 날의 일기 블라블라',
+  },
+  '2025-12-17': {
+    id: 3,
+    date: '2025-12-17',
+    characterType: 'BROWN',
+    emotionType: 'CALM',
+    content: '오늘도 무사히 하루를 마쳤다.',
+  },
 };

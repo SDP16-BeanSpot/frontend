@@ -14,7 +14,10 @@ const CalendarHeader: React.FC<CalendarHeaderProps> = () => {
     <View style={styles.header}>
       <Text style={styles.title}>캘린더</Text>
       <View style={styles.icons}>
-        <TouchableOpacity style={styles.iconBtn}>
+        <TouchableOpacity
+          style={styles.iconBtn}
+          onPress={() => router.push('/calendar/diaries' as Href)}
+        >
           <MaterialCommunityIcons name="book-open-variant-outline" size={24} color="#333" />
         </TouchableOpacity>
         <TouchableOpacity style={styles.iconBtn} onPress={() => router.push('/notifications' as Href)}>
