@@ -27,6 +27,10 @@ const config = {
       ITSAppUsesNonExemptEncryption: false,
       NSLocationWhenInUseUsageDescription:
         "사용자의 현재 위치를 지도에 표시하기 위해 위치 권한이 필요합니다.",
+      NSCameraUsageDescription:
+        "프로필 사진과 공고 포스터를 촬영하기 위해 카메라 권한이 필요합니다.",
+      NSPhotoLibraryUsageDescription:
+        "프로필 사진과 공고 포스터를 등록하기 위해 사진 접근 권한이 필요합니다.",
       // 백엔드가 HTTP(비암호화)라 개발 단계에서 임의 로드 허용.
       // 운영 배포 시 HTTPS 전환 후 이 설정을 제거하세요.
       NSAppTransportSecurity: {
@@ -40,7 +44,7 @@ const config = {
       backgroundColor: "#ffffff",
     },
     package: "com.hyeonggyu.beanspot",
-    permissions: ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION"],
+    permissions: ["ACCESS_COARSE_LOCATION", "ACCESS_FINE_LOCATION", "CAMERA"],
   },
   web: {
     bundler: "metro",
@@ -74,6 +78,17 @@ const config = {
       },
     ],
     "expo-font",
+    [
+      "expo-image-picker",
+      {
+        photosPermission:
+          "프로필 사진과 공고 포스터를 등록하기 위해 사진 접근 권한이 필요합니다.",
+        cameraPermission:
+          "프로필 사진과 공고 포스터를 촬영하기 위해 카메라 권한이 필요합니다.",
+        // 사진만 사용하므로 동영상 녹음용 마이크 권한(RECORD_AUDIO)은 제외
+        microphonePermission: false,
+      },
+    ],
     [
       "@react-native-kakao/core",
       {

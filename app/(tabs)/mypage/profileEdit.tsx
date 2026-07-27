@@ -12,10 +12,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
+import { pickFromLibrary, takePhoto, type PickedImage } from '../../../features/shared/imagePicker';
+
+const DEFAULT_AVATAR = require('../../../assets/images/beanGreen.png');
+
 export default function ProfileEditScreen() {
   const router = useRouter();
   const [nickname, setNickname] = useState('');
   const [showImageSheet, setShowImageSheet] = useState(false);
+  const [avatar, setAvatar] = useState<PickedImage | null>(null);
+
+  const handlePick = async (source: 'camera' | 'library') => {
+    setShowImageSheet(false);
+    const picked =
+      source === 'camera'
+        ? await takePhoto('profile.jpg')
+        : await pickFromLibrary('profile.jpg');
+    if (picked) setAvatar(picked);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -32,9 +46,9 @@ export default function ProfileEditScreen() {
       <View style={styles.avatarWrap}>
         <View style={styles.avatarCircle}>
           <Image
-            source={require('../../../assets/images/icon.png')}
-            style={styles.avatarImage}
-            resizeMode="contain"
+            source={avatar ? { uri: avatar.uri } : DEFAULT_AVATAR}
+            style={avatar ? styles.avatarPhoto : styles.avatarImage}
+            resizeMode={avatar ? 'cover' : 'contain'}
           />
         </View>
         <TouchableOpacity
@@ -91,15 +105,19 @@ export default function ProfileEditScreen() {
         <View style={styles.sheet}>
           <TouchableOpacity
             style={styles.sheetItem}
-            onPress={() => setShowImageSheet(false)}
+            onPress={() => {
+              setAvatar(null);
+              setShowImageSheet(false);
+            }}
           >
             <Text style={styles.sheetItemText}>기본 사진으로</Text>
           </TouchableOpacity>
           <View style={styles.sheetDivider} />
-          <TouchableOpacity
-            style={styles.sheetItem}
-            onPress={() => setShowImageSheet(false)}
-          >
+          <TouchableOpacity style={styles.sheetItem} onPress={() => handlePick('camera')}>
+            <Text style={styles.sheetItemText}>카메라로 촬영</Text>
+          </TouchableOpacity>
+          <View style={styles.sheetDivider} />
+          <TouchableOpacity style={styles.sheetItem} onPress={() => handlePick('library')}>
             <Text style={styles.sheetItemText}>앨범에서 선택</Text>
           </TouchableOpacity>
           <View style={styles.sheetDivider} />
@@ -142,6 +160,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   avatarImage: { width: 64, height: 64 },
+  avatarPhoto: { width: 88, height: 88 },
   cameraBtn: {
     position: 'absolute',
     bottom: 0,

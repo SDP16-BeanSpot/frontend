@@ -14,7 +14,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
+import { pickFromLibrary, takePhoto } from '../../features/shared/imagePicker';
 
 import AdminGuard from '../../components/features/admin/AdminGuard';
 import MonthPicker, { type DatePickerResult } from '../../components/features/calendar/MonthPicker';
@@ -82,24 +82,24 @@ function CreateFlow() {
   const [scheduleDateInput, setScheduleDateInput] = useState('');
   const [scheduleContentInput, setScheduleContentInput] = useState('');
 
-  const pickPoster = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('알림', '사진 접근 권한이 필요합니다.');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      quality: 0.85,
-    });
-    if (!result.canceled && result.assets[0]) {
-      const asset = result.assets[0];
-      setPoster({
-        uri: asset.uri,
-        name: asset.fileName ?? 'poster.jpg',
-        type: asset.mimeType ?? 'image/jpeg',
-      });
-    }
+  const pickPoster = () => {
+    Alert.alert('포스터 등록', '이미지를 어떻게 등록할까요?', [
+      {
+        text: '카메라로 촬영',
+        onPress: async () => {
+          const picked = await takePhoto('poster.jpg');
+          if (picked) setPoster(picked);
+        },
+      },
+      {
+        text: '앨범에서 선택',
+        onPress: async () => {
+          const picked = await pickFromLibrary('poster.jpg');
+          if (picked) setPoster(picked);
+        },
+      },
+      { text: '취소', style: 'cancel' },
+    ]);
   };
 
   const handleDateConfirm = (result: DatePickerResult) => {
