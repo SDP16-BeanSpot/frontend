@@ -5,23 +5,29 @@ import type { ReactionType } from './types';
 /**
  * 채팅 실시간(STOMP over WebSocket) 클라이언트.
  *
- * ⚠️ 아래 DESTINATIONS 는 Spring STOMP 의 일반적인 관례로 채워둔 값입니다.
- *    Notion 웹소켓 문서(구독/발행 경로, 메시지 payload 스펙)를 받으면
- *    이 상수와 아래 타입만 맞추면 바로 동작합니다.
- *
- * ⚠️ 리액션/답장 발행 경로(publishReaction)는 Swagger REST 스펙에 대응 엔드포인트가
- *    없어 STOMP로만 처리된다고 추정한 것입니다. 실제 목적지 경로는 미확인입니다.
+ * 아래 destinations/타입은 실제 백엔드 소스(ChatController, WebSocketConfig,
+ * ChatMessageDto, ReactionStompRequest)를 직접 읽어 확인한 값입니다 (추정 아님):
+ *  - endpoint: /ws-stomp, app prefix: /pub, broker prefix: /sub, /queue, user prefix: /user
+ *  - @MessageMapping("/chat/message")  → /pub/chat/message,  브로드캐스트: /sub/chat/room/{roomId}
+ *  - @MessageMapping("/chat/reaction") → /pub/chat/reaction, 브로드캐스트: /sub/chat/room/{roomId}
+ *  - @MessageExceptionHandler 는 convertAndSendToUser(principal, "/queue/errors", ...) 로 보내므로
+ *    클라이언트는 리터럴 "/user/queue/errors" 를 구독하면 됩니다 (Spring 이 세션별로 알아서 라우팅).
  */
 const DESTINATIONS = {
   // 방 구독 경로 (서버 → 클라이언트). {roomId} 치환
   subscribeRoom: (roomId: string) => `/sub/chat/room/${roomId}`,
   // 메시지 발행 경로 (클라이언트 → 서버)
   publishMessage: '/pub/chat/message',
-  // ⚠️ 미확인: 리액션 토글 발행 경로 (추정)
+  // 리액션 토글 발행 경로 (클라이언트 → 서버)
   publishReaction: '/pub/chat/reaction',
+  // 개인 에러 큐 (서버 → 클라이언트, 세션 단위)
+  userErrors: '/user/queue/errors',
 };
 
-/** 서버에서 내려오는 메시지 payload (Notion 스펙에 맞춰 수정) */
+/** 서버 ChatMessageDto 의 msgType — 기본값이 없어 일반 메시지는 반드시 TALK 를 명시해야 함 */
+export type ChatMessageType = 'TALK' | 'NOTICE' | 'ENTER' | 'QUIT';
+
+/** 서버에서 내려오는 메시지 payload (ChatMessageDto 기준) */
 export interface IncomingChatMessage {
   roomId: string;
   messageId?: string;
@@ -33,19 +39,28 @@ export interface IncomingChatMessage {
   [key: string]: unknown;
 }
 
-/** 클라이언트가 보내는 메시지 payload (Notion 스펙에 맞춰 수정) */
+/** 클라이언트가 보내는 메시지 payload (ChatMessageDto 기준, msgType 필수) */
 export interface OutgoingChatMessage {
   roomId: string;
   content: string;
+  /** 기본값 'TALK'. 서버 DTO 에 기본값이 없어 생략하면 안 됨 */
+  msgType?: ChatMessageType;
   /** 답장 대상 메시지 id (일반 메시지면 생략) */
   parentMsgId?: string;
 }
 
-/** ⚠️ 미확인 — 리액션 토글 발행 payload (추정) */
+/** 리액션 토글 발행 payload (ReactionStompRequest 기준) */
 export interface OutgoingReaction {
   roomId: string;
   messageId: string;
   reactionType: ReactionType;
+}
+
+/** @MessageExceptionHandler 가 보내는 에러 (ExceptionDto 기준: code + message) */
+export interface ChatSocketError {
+  code?: number;
+  message: string;
+  [key: string]: unknown;
 }
 
 type ConnectionListener = (connected: boolean) => void;
@@ -118,7 +133,7 @@ class ChatSocketClient {
     };
   }
 
-  /** 메시지 발행 (parentMsgId 를 포함하면 답장으로 전송됨) */
+  /** 메시지 발행 (parentMsgId 를 포함하면 답장으로 전송됨). msgType 생략 시 'TALK' */
   sendMessage(payload: OutgoingChatMessage): void {
     if (!this.client?.connected) {
       console.warn('[chat socket] 연결되지 않아 메시지를 보낼 수 없습니다.');
@@ -126,15 +141,29 @@ class ChatSocketClient {
     }
     this.client.publish({
       destination: DESTINATIONS.publishMessage,
-      body: JSON.stringify(payload),
+      body: JSON.stringify({ msgType: 'TALK', ...payload }),
     });
   }
 
-  /**
-   * 리액션 토글 발행.
-   * ⚠️ 목적지/payload 형태가 미확인 상태입니다. 실패해도 조용히 무시되므로
-   *    (연결 안 됐을 때 경고만 출력) 화면 자체는 낙관적 업데이트로 계속 동작합니다.
-   */
+  /** 개인 에러 큐 구독. 서버가 @MessageExceptionHandler 로 보내는 에러를 받음 */
+  subscribeToErrors(onError: (error: ChatSocketError) => void): () => void {
+    if (!this.client?.connected) {
+      console.warn('[chat socket] 연결 전에는 구독할 수 없습니다. connect() 먼저 호출하세요.');
+      return () => {};
+    }
+
+    const sub = this.client.subscribe(DESTINATIONS.userErrors, (frame: IMessage) => {
+      try {
+        onError(JSON.parse(frame.body) as ChatSocketError);
+      } catch (error) {
+        console.warn('[chat socket] 에러 메시지 파싱 실패:', error);
+      }
+    });
+
+    return () => sub.unsubscribe();
+  }
+
+  /** 리액션 토글 발행 */
   sendReaction(payload: OutgoingReaction): void {
     if (!this.client?.connected) {
       console.warn('[chat socket] 연결되지 않아 리액션을 보낼 수 없습니다. (로컬에만 반영됨)');

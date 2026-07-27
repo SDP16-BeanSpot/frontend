@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { chatSocket, type IncomingChatMessage } from './socket';
+import { chatSocket, type ChatSocketError, type IncomingChatMessage } from './socket';
 import { WS_URL } from '../shared/apiClient';
 import type { ReactionType } from './types';
 
@@ -17,23 +17,31 @@ import type { ReactionType } from './types';
 export function useChatSocket(
   roomId: string | undefined,
   onMessage: (msg: IncomingChatMessage) => void,
+  onError?: (error: ChatSocketError) => void,
 ) {
   const [connected, setConnected] = useState(false);
   const onMessageRef = useRef(onMessage);
   onMessageRef.current = onMessage;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
 
   useEffect(() => {
     if (!WS_URL || !roomId) return;
 
     let unsubscribeRoom: (() => void) | undefined;
+    let unsubscribeErrors: (() => void) | undefined;
 
     const offConnection = chatSocket.onConnectionChange((isConnected) => {
       setConnected(isConnected);
       if (isConnected) {
-        // 연결되면 방 구독
+        // 연결되면 방 구독 + 개인 에러 큐 구독
         unsubscribeRoom?.();
         unsubscribeRoom = chatSocket.subscribeToRoom(roomId, (msg) =>
           onMessageRef.current(msg),
+        );
+        unsubscribeErrors?.();
+        unsubscribeErrors = chatSocket.subscribeToErrors((error) =>
+          onErrorRef.current?.(error),
         );
       }
     });
@@ -42,6 +50,7 @@ export function useChatSocket(
 
     return () => {
       unsubscribeRoom?.();
+      unsubscribeErrors?.();
       offConnection();
     };
   }, [roomId]);

@@ -12,6 +12,7 @@ import {
   Modal,
   Pressable,
   GestureResponderEvent,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
@@ -87,6 +88,9 @@ const ChatRoomScreen = () => {
           parentMsgId: incoming.parentMsgId,
         },
       ]);
+    },
+    (error) => {
+      Alert.alert('알림', error.message || '메시지 전송 중 오류가 발생했어요.');
     },
   );
 
