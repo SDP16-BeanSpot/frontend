@@ -37,9 +37,7 @@ export default function FeedbackScreen() {
       Alert.alert('오류', '의견 제출에 실패했어요. 잠시 후 다시 시도해주세요.');
       return;
     }
-    Alert.alert('감사합니다', '소중한 의견 감사합니다!', [
-      { text: '확인', onPress: () => router.back() },
-    ]);
+    router.replace('/mypage/feedbackComplete' as any);
   };
 
   return (
