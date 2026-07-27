@@ -13,6 +13,9 @@ const config = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.hyeonggyu.BeanSpot",
+    // App Store 심사 가이드라인 4.8: 카카오(서드파티 소셜 로그인)를 제공하므로
+    // 동등한 대체 로그인(Sign in with Apple)을 함께 제공해야 합니다.
+    usesAppleSignIn: true,
     infoPlist: {
       CFBundleURLTypes: [
         {
@@ -78,6 +81,7 @@ const config = {
       },
     ],
     "expo-font",
+    "expo-apple-authentication",
     [
       "expo-image-picker",
       {

@@ -10,13 +10,28 @@ import {
 import { Image } from 'expo-image';
 import { router, Href } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import useKakaoAuth from '../../hooks/useKakaoAuth';
+import useAppleAuth from '../../hooks/useAppleAuth';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const wrapperWidth = SCREEN_WIDTH * 0.6;
 
 export default function AuthPage() {
   const { user, loading, error, kakaologin } = useKakaoAuth();
+  const {
+    isAvailable: isAppleAvailable,
+    error: appleError,
+    loading: appleLoading,
+    appleLogin,
+    checkAvailability,
+  } = useAppleAuth();
+
+  // Apple 로그인은 iOS 이면서 기기가 지원할 때만 노출
+  useEffect(() => {
+    checkAvailability();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // 로그인 성공 시 홈으로 이동
   useEffect(() => {
@@ -31,6 +46,17 @@ export default function AuthPage() {
       Alert.alert('로그인 실패', error);
     }
   }, [error]);
+
+  useEffect(() => {
+    if (appleError) {
+      Alert.alert('로그인 실패', appleError);
+    }
+  }, [appleError]);
+
+  const handleAppleLogin = async () => {
+    const ok = await appleLogin();
+    if (ok) router.replace('/(tabs)/home');
+  };
   return (
     <SafeAreaView style={styles.container}>
         {/* Bean 캐릭터 섹션 */}
@@ -78,7 +104,19 @@ export default function AuthPage() {
             </View>
           </TouchableOpacity>
 
-          <TouchableOpacity 
+          {/* App Store 가이드라인 4.8: 카카오 로그인 제공 시 동등한 대체 로그인 필수.
+              Apple 디자인 규정을 지키기 위해 공식 버튼 컴포넌트를 사용합니다. */}
+          {isAppleAvailable && (
+            <AppleAuthentication.AppleAuthenticationButton
+              buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+              buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+              cornerRadius={12}
+              style={styles.appleButton}
+              onPress={appleLoading ? undefined : handleAppleLogin}
+            />
+          )}
+
+          <TouchableOpacity
             style={styles.beanspotButton}
             onPress={() => router.push('/onBoarding/login' as Href)}
           >
@@ -164,6 +202,11 @@ const styles = StyleSheet.create({
   },
   kakaoButtonDisabled: {
     opacity: 0.6,
+  },
+  appleButton: {
+    width: '100%',
+    height: 54,
+    marginBottom: 12,
   },
   kakaoButtonText: {
     fontSize: 16,
