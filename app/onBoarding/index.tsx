@@ -95,8 +95,9 @@ export default function AuthPage() {
           >
             <View style={styles.kakaoContent}>
               <Image
-                source={require('../../assets/images/chat.png')}
+                source={require('../../assets/images/kakaoIcon.png')}
                 style={styles.icon}
+                resizeMode="contain"
               />
               <Text style={styles.kakaoButtonText}>
                 {loading ? '로그인 중...' : '카카오로 시작하기'}
