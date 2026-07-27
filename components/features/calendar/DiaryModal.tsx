@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   StyleSheet,
   View,
@@ -7,6 +7,7 @@ import {
   Modal,
   TextInput,
   Image,
+  ImageSourcePropType,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,29 +16,55 @@ import {
   DIARY_MAX_LENGTH,
   EMOTION_ORDER,
   type CharacterType,
+  type DiaryData,
   type EmotionType,
 } from '../../../features/calendar/types';
 import DiaryFace from './DiaryFace';
 
+export interface DiarySubmitPayload {
+  characterType: CharacterType;
+  emotionType: EmotionType;
+  content: string;
+}
+
 interface DiaryModalProps {
   visible: boolean;
   onClose: () => void;
-  onSubmit?: (payload: {
-    characterType: CharacterType;
-    emotionType: EmotionType;
-    content: string;
-  }) => void;
+  /** 표시할 날짜 (yyyy-MM-dd). 없으면 헤더의 날짜 줄을 숨김 */
+  date?: string;
+  /** 기존 일기가 있으면 그 값으로 초기화 (수정 모드) */
+  initialDiary?: DiaryData | null;
+  onSubmit?: (payload: DiarySubmitPayload) => void;
 }
 
-const CHARACTERS: { type: CharacterType; image: ReturnType<typeof require> }[] = [
+const CHARACTERS: { type: CharacterType; image: ImageSourcePropType }[] = [
   { type: 'BROWN', image: require('../../../assets/images/beanBrown.png') },
   { type: 'GREEN', image: require('../../../assets/images/beanGreen.png') },
 ];
 
-const DiaryModal: React.FC<DiaryModalProps> = ({ visible, onClose, onSubmit }) => {
+const formatKoreanDate = (date: string) => {
+  const [y, m, d] = date.split('-');
+  return `${y}년 ${Number(m)}월 ${Number(d)}일`;
+};
+
+const DiaryModal: React.FC<DiaryModalProps> = ({
+  visible,
+  onClose,
+  date,
+  initialDiary,
+  onSubmit,
+}) => {
   const [selectedChar, setSelectedChar] = useState<CharacterType>('GREEN');
   const [selectedEmotion, setSelectedEmotion] = useState<EmotionType>('HAPPY');
   const [diaryText, setDiaryText] = useState<string>('');
+
+  // 모달이 열릴 때마다 대상 날짜의 기존 일기로 초기화 (없으면 기본값)
+  useEffect(() => {
+    if (!visible) return;
+    setSelectedChar(initialDiary?.characterType ?? 'GREEN');
+    setSelectedEmotion(initialDiary?.emotionType ?? 'HAPPY');
+    setDiaryText(initialDiary?.content ?? '');
+  }, [visible, initialDiary]);
 
   const handleSubmit = () => {
     onSubmit?.({
@@ -61,6 +88,8 @@ const DiaryModal: React.FC<DiaryModalProps> = ({ visible, onClose, onSubmit }) =
               <Ionicons name="checkmark" size={28} color="#333" />
             </TouchableOpacity>
           </View>
+
+          {date && <Text style={styles.dateLabel}>{formatKoreanDate(date)}</Text>}
 
           {/* 캐릭터 선택 (꾸콩 / 푸콩) */}
           <View style={styles.charSelectionRow}>
@@ -130,9 +159,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
   },
   modalTitle: { fontSize: 18, fontWeight: 'bold' },
+  dateLabel: {
+    alignSelf: 'flex-start',
+    fontSize: 15,
+    fontWeight: '700',
+    color: '#222',
+    marginBottom: 16,
+  },
   charSelectionRow: { flexDirection: 'row', gap: 30, marginBottom: 24 },
   charTab: {
     width: 63,

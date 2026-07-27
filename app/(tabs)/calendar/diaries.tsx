@@ -11,9 +11,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-import { fetchMonthlyDiaries } from '../../../features/calendar/api';
+import { createDiary, fetchMonthlyDiaries, updateDiary } from '../../../features/calendar/api';
 import { DIARY_MAX_LENGTH, type DiaryData } from '../../../features/calendar/types';
 import DiaryFace from '../../../components/features/calendar/DiaryFace';
+import DiaryModal, {
+  type DiarySubmitPayload,
+} from '../../../components/features/calendar/DiaryModal';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const toDateKey = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -38,21 +41,29 @@ export default function DiaryCollectionScreen() {
   const [month, setMonth] = useState(today.getMonth() + 1);
   const [diaries, setDiaries] = useState<DiaryData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingDate, setEditingDate] = useState<string | null>(null);
+
+  const loadDiaries = useCallback(
+    (signal?: { cancelled: boolean }) => {
+      setLoading(true);
+      return fetchMonthlyDiaries(year, month)
+        .then((list) => {
+          if (!signal?.cancelled) setDiaries(list);
+        })
+        .finally(() => {
+          if (!signal?.cancelled) setLoading(false);
+        });
+    },
+    [year, month],
+  );
 
   useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    fetchMonthlyDiaries(year, month)
-      .then((list) => {
-        if (!cancelled) setDiaries(list);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    const signal = { cancelled: false };
+    loadDiaries(signal);
     return () => {
-      cancelled = true;
+      signal.cancelled = true;
     };
-  }, [year, month]);
+  }, [loadDiaries]);
 
   const byDate = useMemo(() => {
     const map: Record<string, DiaryData> = {};
@@ -63,6 +74,33 @@ export default function DiaryCollectionScreen() {
   }, [diaries]);
 
   const days = useMemo(() => buildDaysOfMonth(year, month, today), [year, month, today]);
+
+  const editingDiary = editingDate ? byDate[editingDate] ?? null : null;
+
+  const handleSubmit = useCallback(
+    async (payload: DiarySubmitPayload) => {
+      if (!editingDate) return;
+      const body = { ...payload, date: editingDate };
+      const result = editingDiary
+        ? await updateDiary(editingDiary.id, body)
+        : await createDiary(body);
+
+      // 서버가 없을 때(skipped)는 목록만 낙관적으로 갱신해 화면 흐름을 확인할 수 있게 한다
+      if (result.skipped) {
+        setDiaries((prev) => {
+          const rest = prev.filter((d) => d.date !== editingDate);
+          if (!payload.content) return rest;
+          return [
+            ...rest,
+            { id: editingDiary?.id ?? Date.now(), date: editingDate, ...payload },
+          ].sort((a, b) => b.date.localeCompare(a.date));
+        });
+        return;
+      }
+      if (result.ok) await loadDiaries();
+    },
+    [editingDate, editingDiary, loadDiaries],
+  );
 
   const shiftMonth = useCallback((delta: number) => {
     setMonth((prev) => {
@@ -136,7 +174,7 @@ export default function DiaryCollectionScreen() {
                 <TouchableOpacity
                   activeOpacity={0.8}
                   style={styles.card}
-                  onPress={() => router.push('/calendar' as any)}
+                  onPress={() => setEditingDate(dateKey)}
                 >
                   <Text style={diary ? styles.cardText : styles.cardPlaceholder}>
                     {diary ? diary.content : '일기를 작성해보세요.'}
@@ -150,6 +188,14 @@ export default function DiaryCollectionScreen() {
           })}
         </ScrollView>
       )}
+
+      <DiaryModal
+        visible={editingDate !== null}
+        date={editingDate ?? undefined}
+        initialDiary={editingDiary}
+        onClose={() => setEditingDate(null)}
+        onSubmit={handleSubmit}
+      />
     </SafeAreaView>
   );
 }

@@ -10,7 +10,8 @@ import ScheduleSection from '../../../components/features/calendar/ScheduleSecti
 import DiaryModal from '../../../components/features/calendar/DiaryModal';
 import MonthPicker, { type DatePickerResult } from '../../../components/features/calendar/MonthPicker';
 import WelcomePopup from '../../../components/features/calendar/WelcomePopup';
-import { SCHEDULE_DATA } from '../../../features/calendar/mock';
+import { SCHEDULE_DATA, DIARY_DATA } from '../../../features/calendar/mock';
+import { createDiary } from '../../../features/calendar/api';
 
 LocaleConfig.locales['kr'] = {
   monthNames: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
@@ -85,7 +86,12 @@ export default function CalendarScreen() {
 
       <DiaryModal
         visible={isDiaryVisible}
+        date={formatDate(selectedDate)}
+        initialDiary={DIARY_DATA[formatDate(selectedDate)] ?? null}
         onClose={() => setDiaryVisible(false)}
+        onSubmit={(payload) =>
+          createDiary({ ...payload, date: formatDate(selectedDate) })
+        }
       />
 
       <WelcomePopup
