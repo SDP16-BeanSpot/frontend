@@ -1,10 +1,32 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
+import { Feather } from '@expo/vector-icons';
+import { useFocusEffect, useRouter } from 'expo-router';
+
+import { fetchMyProfile } from '../../../features/user/api';
+import { DEFAULT_NICKNAME } from '../../../features/user/types';
+
+const DEFAULT_AVATAR = require('../../../assets/images/beanGreen.png');
 
 const ProfileCard = () => {
   const router = useRouter();
+  const [nickname, setNickname] = useState(DEFAULT_NICKNAME);
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
+
+  // 프로필 수정 후 돌아왔을 때 갱신되도록 포커스마다 다시 읽음
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      fetchMyProfile().then((profile) => {
+        if (cancelled) return;
+        setNickname(profile.nickname || DEFAULT_NICKNAME);
+        setAvatarUri(profile.profileUrl ?? null);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }, []),
+  );
 
   return (
     <View style={styles.profileCard}>
@@ -12,9 +34,15 @@ const ProfileCard = () => {
       <View style={styles.profileRow}>
         <View style={styles.profileInfo}>
           <View style={styles.avatarContainer}>
-            <MaterialCommunityIcons name="bird" size={32} color="#76E24E" />
+            <Image
+              source={avatarUri ? { uri: avatarUri } : DEFAULT_AVATAR}
+              style={avatarUri ? styles.avatarPhoto : styles.avatarImage}
+              resizeMode={avatarUri ? 'cover' : 'contain'}
+            />
           </View>
-          <Text style={styles.nickname}>빈스팟</Text>
+          <Text style={styles.nickname} numberOfLines={1}>
+            {nickname}
+          </Text>
         </View>
         <TouchableOpacity
           style={styles.editBtn}
@@ -65,8 +93,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
+    overflow: 'hidden',
   },
-  nickname: { fontSize: 20, fontWeight: 'bold', color: '#333' },
+  avatarImage: { width: 32, height: 32 },
+  avatarPhoto: { width: 44, height: 44 },
+  nickname: { fontSize: 20, fontWeight: 'bold', color: '#333', flexShrink: 1 },
   editBtn: {
     flexDirection: 'row',
     alignItems: 'center',

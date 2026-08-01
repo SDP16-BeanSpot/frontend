@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
-import { pickFromLibrary, takePhoto, type PickedImage } from '../../../features/shared/imagePicker';
+import { pickFromLibrary, takePhoto } from '../../../features/shared/imagePicker';
+import { fetchMyProfile, updateMyProfile } from '../../../features/user/api';
+import { NICKNAME_MAX_LENGTH } from '../../../features/user/types';
 
 const DEFAULT_AVATAR = require('../../../assets/images/beanGreen.png');
 
@@ -20,7 +22,21 @@ export default function ProfileEditScreen() {
   const router = useRouter();
   const [nickname, setNickname] = useState('');
   const [showImageSheet, setShowImageSheet] = useState(false);
-  const [avatar, setAvatar] = useState<PickedImage | null>(null);
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  // 기존 프로필을 불러와 초기값으로 채움
+  useEffect(() => {
+    let cancelled = false;
+    fetchMyProfile().then((profile) => {
+      if (cancelled) return;
+      setNickname(profile.nickname ?? '');
+      setAvatarUri(profile.profileUrl ?? null);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handlePick = async (source: 'camera' | 'library') => {
     setShowImageSheet(false);
@@ -28,7 +44,15 @@ export default function ProfileEditScreen() {
       source === 'camera'
         ? await takePhoto('profile.jpg')
         : await pickFromLibrary('profile.jpg');
-    if (picked) setAvatar(picked);
+    if (picked) setAvatarUri(picked.uri);
+  };
+
+  const handleSubmit = async () => {
+    if (!nickname.trim() || saving) return;
+    setSaving(true);
+    await updateMyProfile({ nickname: nickname.trim(), profileUrl: avatarUri });
+    setSaving(false);
+    router.back();
   };
 
   return (
@@ -46,9 +70,9 @@ export default function ProfileEditScreen() {
       <View style={styles.avatarWrap}>
         <View style={styles.avatarCircle}>
           <Image
-            source={avatar ? { uri: avatar.uri } : DEFAULT_AVATAR}
-            style={avatar ? styles.avatarPhoto : styles.avatarImage}
-            resizeMode={avatar ? 'cover' : 'contain'}
+            source={avatarUri ? { uri: avatarUri } : DEFAULT_AVATAR}
+            style={avatarUri ? styles.avatarPhoto : styles.avatarImage}
+            resizeMode={avatarUri ? 'cover' : 'contain'}
           />
         </View>
         <TouchableOpacity
@@ -68,7 +92,7 @@ export default function ProfileEditScreen() {
           placeholderTextColor="#BDBDBD"
           value={nickname}
           onChangeText={setNickname}
-          maxLength={20}
+          maxLength={NICKNAME_MAX_LENGTH}
         />
       </View>
 
@@ -81,12 +105,14 @@ export default function ProfileEditScreen() {
           <Text style={styles.cancelText}>취소</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.confirmBtn, !nickname.trim() && styles.confirmBtnDisabled]}
-          onPress={() => {
-            if (nickname.trim()) router.back();
-          }}
+          style={[
+            styles.confirmBtn,
+            (!nickname.trim() || saving) && styles.confirmBtnDisabled,
+          ]}
+          onPress={handleSubmit}
+          disabled={!nickname.trim() || saving}
         >
-          <Text style={styles.confirmText}>완료</Text>
+          <Text style={styles.confirmText}>{saving ? '저장 중...' : '완료'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -106,7 +132,7 @@ export default function ProfileEditScreen() {
           <TouchableOpacity
             style={styles.sheetItem}
             onPress={() => {
-              setAvatar(null);
+              setAvatarUri(null);
               setShowImageSheet(false);
             }}
           >
