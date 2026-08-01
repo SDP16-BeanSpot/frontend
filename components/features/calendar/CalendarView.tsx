@@ -2,22 +2,26 @@ import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Calendar, DateData } from 'react-native-calendars';
 import { Feather } from '@expo/vector-icons';
-import type { CampaignSchedule } from '../../../features/calendar/types';
+import {
+  scheduleColorOf,
+  type CalendarSchedule,
+} from '../../../features/calendar/types';
 
 interface CalendarViewProps {
   current?: string;
   selectedDate: string;
   onDayPress: (date: DateData) => void;
-  scheduleData: Record<string, CampaignSchedule[]>;
+  /** 관심 공고 일정(활동기간). 각 날짜에 칠할 막대는 여기서 펼쳐서 계산합니다 */
+  schedules: CalendarSchedule[];
   onOpenPicker: () => void;
 }
 
 const toDate = (s: string) => new Date(s + 'T00:00:00');
 
-function buildMarkedDates(
-  scheduleData: Record<string, CampaignSchedule[]>,
-  selectedDate: string,
-) {
+const pad = (n: number) => String(n).padStart(2, '0');
+const toKey = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+
+function buildMarkedDates(schedules: CalendarSchedule[], selectedDate: string) {
   const marks: Record<string, any> = {};
 
   const addMark = (dateStr: string, period: any) => {
@@ -25,10 +29,21 @@ function buildMarkedDates(
     marks[dateStr].periods.push(period);
   };
 
-  Object.entries(scheduleData).forEach(([dateStr, schedules]) => {
-    schedules.forEach((s) => {
-      addMark(dateStr, { startingDay: true, endingDay: true, color: s.color });
-    });
+  // 활동기간(startDate~endDate)을 날짜별로 펼쳐서 막대를 칠함
+  schedules.forEach((schedule) => {
+    const color = scheduleColorOf(schedule.announcementId);
+    const cursor = toDate(schedule.startDate);
+    const end = toDate(schedule.endDate);
+
+    while (cursor <= end) {
+      const key = toKey(cursor);
+      addMark(key, {
+        startingDay: key === schedule.startDate,
+        endingDay: key === schedule.endDate,
+        color,
+      });
+      cursor.setDate(cursor.getDate() + 1);
+    }
   });
 
   if (!marks[selectedDate]) marks[selectedDate] = { periods: [] };
@@ -48,10 +63,10 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   current,
   selectedDate,
   onDayPress,
-  scheduleData,
+  schedules,
   onOpenPicker,
 }) => {
-  const markedDates = buildMarkedDates(scheduleData, selectedDate);
+  const markedDates = buildMarkedDates(schedules, selectedDate);
 
   // current에서 연월 추출
   const [y, m] = (current ?? selectedDate).split('-');

@@ -1,8 +1,15 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import { SCHEDULE_DATA, DIARY_DATA } from '../../../features/calendar/mock';
-import type { CampaignSchedule, TodoItem } from '../../../features/calendar/types';
+
+import { fetchMonthlySchedules, fetchTodosByDate, toggleTodoStatus } from '../../../features/calendar/api';
+import { DIARY_DATA } from '../../../features/calendar/mock';
+import {
+  coversDate,
+  toCampaignSchedule,
+  type CampaignSchedule,
+  type TodoItem,
+} from '../../../features/calendar/types';
 import DiaryFace from './DiaryFace';
 
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
@@ -14,34 +21,48 @@ interface ScheduleSectionProps {
 
 const ScheduleSection: React.FC<ScheduleSectionProps> = ({ selectedDate, onDiaryPress }) => {
   const diary = DIARY_DATA[selectedDate];
-  const [schedules, setSchedules] = useState<CampaignSchedule[]>(
-    SCHEDULE_DATA[selectedDate] ?? [],
-  );
+  const [schedules, setSchedules] = useState<CampaignSchedule[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // 선택 날짜가 바뀌면 일정 갱신
-  React.useEffect(() => {
-    setSchedules(SCHEDULE_DATA[selectedDate] ?? []);
+  // 선택 날짜가 바뀌면 그 달의 일정 + 그 날짜의 할 일을 다시 불러옴
+  const load = useCallback(async () => {
+    const [year, month] = selectedDate.split('-').map(Number);
+    setLoading(true);
+    const [monthly, todos] = await Promise.all([
+      fetchMonthlySchedules(year, month),
+      fetchTodosByDate(selectedDate),
+    ]);
+    setSchedules(
+      monthly
+        .filter((s) => coversDate(s, selectedDate))
+        .map((s) => toCampaignSchedule(s, todos)),
+    );
+    setLoading(false);
   }, [selectedDate]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const toggleTodo = async (todo: TodoItem) => {
+    // 낙관적 업데이트 후 서버 반영, 실패하면 되돌림
+    const apply = (value: boolean) =>
+      setSchedules((prev) =>
+        prev.map((s) => ({
+          ...s,
+          todos: s.todos.map((t) => (t.id === todo.id ? { ...t, isCompleted: value } : t)),
+        })),
+      );
+
+    apply(!todo.isCompleted);
+    const result = await toggleTodoStatus(todo.id);
+    if (!result.ok && !result.skipped) apply(todo.isCompleted);
+  };
 
   // 요일 동적 계산
   const dateObj = new Date(selectedDate + 'T00:00:00');
   const day = dateObj.getDate();
   const dayName = DAY_NAMES[dateObj.getDay()];
-
-  const toggleTodo = (scheduleId: string, todoId: string) => {
-    setSchedules((prev) =>
-      prev.map((s) =>
-        s.id !== scheduleId
-          ? s
-          : {
-              ...s,
-              todos: s.todos.map((t) =>
-                t.id === todoId ? { ...t, completed: !t.completed } : t,
-              ),
-            },
-      ),
-    );
-  };
 
   return (
     <View style={styles.wrap}>
@@ -60,7 +81,11 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ selectedDate, onDiary
         </TouchableOpacity>
       </View>
 
-      {schedules.length > 0 ? (
+      {loading ? (
+        <View style={styles.loading}>
+          <ActivityIndicator color="#4CAF50" />
+        </View>
+      ) : schedules.length > 0 ? (
         schedules.map((campaign) => (
           <View key={campaign.id} style={styles.campaignCard}>
             {/* 제목 + 기간 */}
@@ -82,18 +107,18 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ selectedDate, onDiary
                   <Text style={styles.addText}>할 일 추가하기</Text>
                 </TouchableOpacity>
 
-                {campaign.todos.map((todo: TodoItem) => (
+                {campaign.todos.map((todo) => (
                   <TouchableOpacity
                     key={todo.id}
                     style={styles.todoItem}
-                    onPress={() => toggleTodo(campaign.id, todo.id)}
+                    onPress={() => toggleTodo(todo)}
                     activeOpacity={0.7}
                   >
-                    <View style={[styles.checkbox, todo.completed && styles.checkedBox]}>
-                      {todo.completed && <Feather name="check" size={12} color="#fff" />}
+                    <View style={[styles.checkbox, todo.isCompleted && styles.checkedBox]}>
+                      {todo.isCompleted && <Feather name="check" size={12} color="#fff" />}
                     </View>
-                    <Text style={[styles.todoText, todo.completed && styles.completedText]}>
-                      {todo.task}
+                    <Text style={[styles.todoText, todo.isCompleted && styles.completedText]}>
+                      {todo.content}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -129,6 +154,7 @@ const styles = StyleSheet.create({
   dateLabel: { fontSize: 18, fontWeight: 'bold', color: '#222' },
   diaryRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   diaryHint: { fontSize: 14, color: '#CCC' },
+  loading: { paddingVertical: 48, alignItems: 'center' },
   campaignCard: { marginBottom: 28 },
   titleBar: { borderLeftWidth: 4, paddingLeft: 12, marginBottom: 12 },
   campaignTitle: { fontSize: 16, fontWeight: '700', color: '#222', marginBottom: 2 },

@@ -10,8 +10,9 @@ import ScheduleSection from '../../../components/features/calendar/ScheduleSecti
 import DiaryModal from '../../../components/features/calendar/DiaryModal';
 import MonthPicker, { type DatePickerResult } from '../../../components/features/calendar/MonthPicker';
 import WelcomePopup from '../../../components/features/calendar/WelcomePopup';
-import { SCHEDULE_DATA, DIARY_DATA } from '../../../features/calendar/mock';
-import { createDiary } from '../../../features/calendar/api';
+import { DIARY_DATA } from '../../../features/calendar/mock';
+import { createDiary, fetchMonthlySchedules } from '../../../features/calendar/api';
+import type { CalendarSchedule } from '../../../features/calendar/types';
 
 LocaleConfig.locales['kr'] = {
   monthNames: ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'],
@@ -35,6 +36,21 @@ export default function CalendarScreen() {
   const [isPickerVisible, setPickerVisible] = useState(false);
   const [isDiaryVisible, setDiaryVisible] = useState(false);
   const [isWelcomeVisible, setWelcomeVisible] = useState(false);
+  const [schedules, setSchedules] = useState<CalendarSchedule[]>([]);
+
+  // 보이는 달이 바뀔 때만 다시 부르도록 연/월만 의존값으로 뽑아둠
+  const viewYear = selectedDate.getFullYear();
+  const viewMonth = selectedDate.getMonth() + 1;
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchMonthlySchedules(viewYear, viewMonth).then((list) => {
+      if (!cancelled) setSchedules(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [viewYear, viewMonth]);
 
   useEffect(() => {
     SecureStore.getItemAsync(WELCOME_KEY)
@@ -67,7 +83,7 @@ export default function CalendarScreen() {
           current={formatDate(selectedDate)}
           selectedDate={formatDate(selectedDate)}
           onDayPress={(day) => setSelectedDate(new Date(day.dateString + 'T00:00:00'))}
-          scheduleData={SCHEDULE_DATA}
+          schedules={schedules}
           onOpenPicker={() => setPickerVisible(true)}
         />
 
