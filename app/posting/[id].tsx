@@ -13,7 +13,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Href, useLocalSearchParams, useRouter } from 'expo-router';
 
-import { fetchPostingDetail, toggleFavoritePosting } from '../../features/posting/api';
+import {
+  fetchPostingDetail,
+  isFavoritePosting,
+  toggleFavoritePosting,
+} from '../../features/posting/api';
 import type { PostingDetail } from '../../features/posting/types';
 
 export default function PostingDetailScreen() {
@@ -23,7 +27,20 @@ export default function PostingDetailScreen() {
 
   useEffect(() => {
     if (!id) return;
-    fetchPostingDetail(String(id)).then(setPosting);
+    let cancelled = false;
+    // 공고 상세와 관심 등록 여부를 함께 불러와 하트 상태를 맞춤
+    Promise.all([fetchPostingDetail(String(id)), isFavoritePosting(String(id))]).then(
+      ([detail, favorited]) => {
+        if (cancelled || !detail) {
+          if (!cancelled) setPosting(detail);
+          return;
+        }
+        setPosting({ ...detail, isFavorite: favorited });
+      },
+    );
+    return () => {
+      cancelled = true;
+    };
   }, [id]);
 
   const handleShare = async () => {
@@ -37,7 +54,12 @@ export default function PostingDetailScreen() {
     if (!posting) return;
     const next = !posting.isFavorite;
     setPosting({ ...posting, isFavorite: next });
-    await toggleFavoritePosting(posting.id, next);
+
+    const result = await toggleFavoritePosting(posting.id, next);
+    // 서버 반영 실패 시 하트를 원래대로 되돌림
+    if (!result.ok && !result.skipped) {
+      setPosting((prev) => (prev ? { ...prev, isFavorite: !next } : prev));
+    }
   };
 
   const handleApply = () => {

@@ -16,7 +16,11 @@ import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { Href, useRouter } from 'expo-router';
 import BeanSpotKakaoMapView from '../../../components/features/map/BeanSpotKakaoMapView';
-import { fetchJobPostings, toggleFavoritePosting } from '../../../features/map/api';
+import {
+  fetchFavoritePostingIds,
+  fetchJobPostings,
+  toggleFavoritePosting,
+} from '../../../features/map/api';
 import type { JobPosting } from '../../../features/map/types';
 
 // 카테고리 목록
@@ -94,19 +98,31 @@ export default function MapScreen() {
     }
   }, [mapReady]);
 
+  // 이미 등록해둔 관심 공고를 불러와 하트 상태를 복원
+  useEffect(() => {
+    let cancelled = false;
+    fetchFavoritePostingIds().then((ids) => {
+      if (!cancelled) setFavorites(ids);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const toggleFavorite = useCallback(async (postingId: string) => {
     const isFavorite = favorites.has(postingId);
-    setFavorites((prev) => {
-      const updated = new Set(prev);
-      if (isFavorite) {
-        updated.delete(postingId);
-      } else {
-        updated.add(postingId);
-      }
-      return updated;
-    });
-    // Fire-and-forget API call
-    await toggleFavoritePosting(postingId, !isFavorite);
+    const applyLocal = (favorited: boolean) =>
+      setFavorites((prev) => {
+        const updated = new Set(prev);
+        if (favorited) updated.add(postingId);
+        else updated.delete(postingId);
+        return updated;
+      });
+
+    applyLocal(!isFavorite);
+    const result = await toggleFavoritePosting(postingId, !isFavorite);
+    // 서버 반영 실패 시 하트를 원래대로 되돌림
+    if (!result.ok && !result.skipped) applyLocal(isFavorite);
   }, [favorites]);
 
   const handleMarkerPress = useCallback(
