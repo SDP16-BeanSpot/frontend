@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { Href, useFocusEffect, useRouter } from 'expo-router';
 
 import { fetchMyProfile } from '../../../features/user/api';
 import { DEFAULT_NICKNAME } from '../../../features/user/types';
@@ -63,7 +63,10 @@ const ProfileCard = () => {
         </Text>
       </View>
 
-      <TouchableOpacity style={styles.interestButton}>
+      <TouchableOpacity
+        style={styles.interestButton}
+        onPress={() => router.push('/mypage/favorites' as Href)}
+      >
         <Text style={styles.interestButtonText}>나의 관심공고</Text>
       </TouchableOpacity>
     </View>

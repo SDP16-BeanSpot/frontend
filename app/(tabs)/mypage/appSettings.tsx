@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
+import { Href, useRouter } from 'expo-router';
 
 const AppSettingsScreen = () => {
   const router = useRouter();
@@ -65,7 +65,10 @@ const AppSettingsScreen = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>기타</Text>
 
-          <TouchableOpacity style={styles.item}>
+          <TouchableOpacity
+            style={styles.item}
+            onPress={() => router.push('/mypage/notice' as Href)}
+          >
             <Text style={styles.itemText}>공지사항</Text>
           </TouchableOpacity>
 
