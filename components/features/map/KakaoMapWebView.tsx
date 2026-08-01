@@ -64,8 +64,24 @@ kakao.maps.load(function() {
     } catch(_) {}
   });
 
-  // 맵 준비 완료 알림
+  // 보이는 영역이 바뀌면 알림 (지도 범위 내 공고만 목록에 표시하기 위함)
+  function postBounds() {
+    var b = map.getBounds();
+    var sw = b.getSouthWest();
+    var ne = b.getNorthEast();
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      type: 'cameraChange',
+      minLat: sw.getLat(),
+      maxLat: ne.getLat(),
+      minLng: sw.getLng(),
+      maxLng: ne.getLng()
+    }));
+  }
+  kakao.maps.event.addListener(map, 'idle', postBounds);
+
+  // 맵 준비 완료 알림 (최초 표시 영역도 함께 전달)
   window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'mapReady' }));
+  postBounds();
 });
 </script>
 </body>
@@ -80,6 +96,7 @@ const KakaoMapWebView: React.FC<KakaoMapWebViewProps> = ({
   markers = [],
   onMarkerPress,
   onMapReady,
+  onCameraChange,
   initialCamera = { lat: 37.4979, lng: 126.8291, zoomLevel: 3 },
   style,
 }) => {
@@ -97,9 +114,19 @@ const KakaoMapWebView: React.FC<KakaoMapWebViewProps> = ({
         if (msg.type === 'mapReady' && onMapReady) {
           onMapReady();
         }
+        if (msg.type === 'cameraChange' && onCameraChange) {
+          onCameraChange({
+            nativeEvent: {
+              minLat: msg.minLat,
+              maxLat: msg.maxLat,
+              minLng: msg.minLng,
+              maxLng: msg.maxLng,
+            },
+          } as any);
+        }
       } catch {}
     },
-    [onMarkerPress, onMapReady],
+    [onMarkerPress, onMapReady, onCameraChange],
   );
 
   if (!APP_KEY || APP_KEY === 'your_kakao_map_javascript_key_here') {

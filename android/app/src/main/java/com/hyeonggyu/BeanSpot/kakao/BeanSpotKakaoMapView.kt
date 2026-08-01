@@ -52,8 +52,11 @@ class BeanSpotKakaoMapView(context: ThemedReactContext) : FrameLayout(context) {
         override fun onMapReady(map: KakaoMap) {
           kakaoMap = map
           bindLabelClickListener(map)
+          bindCameraMoveEndListener(map)
           renderMarkers()
           emitEvent("onMapReady", Arguments.createMap())
+          // 최초 표시 영역도 한 번 알려줘야 첫 화면의 공고 목록을 채울 수 있음
+          emitCameraChange(map)
         }
       },
     )
@@ -91,6 +94,33 @@ class BeanSpotKakaoMapView(context: ThemedReactContext) : FrameLayout(context) {
         false
       }
     }
+  }
+
+  /**
+   * 카메라 이동이 끝나면 현재 보이는 영역을 JS 로 알려준다.
+   * (지도에 보이는 범위의 공고만 목록에 표시하기 위함)
+   */
+  private fun bindCameraMoveEndListener(map: KakaoMap) {
+    map.setOnCameraMoveEndListener { kakaoMap: KakaoMap, _, _ ->
+      emitCameraChange(kakaoMap)
+    }
+  }
+
+  /** 화면 네 모서리를 좌표로 변환해 보이는 영역(bounds)을 계산 */
+  private fun emitCameraChange(map: KakaoMap) {
+    val viewWidth = width
+    val viewHeight = height
+    if (viewWidth <= 0 || viewHeight <= 0) return
+
+    val topLeft = map.fromScreenPoint(0, 0) ?: return
+    val bottomRight = map.fromScreenPoint(viewWidth, viewHeight) ?: return
+
+    val payload = Arguments.createMap()
+    payload.putDouble("minLat", minOf(topLeft.latitude, bottomRight.latitude))
+    payload.putDouble("maxLat", maxOf(topLeft.latitude, bottomRight.latitude))
+    payload.putDouble("minLng", minOf(topLeft.longitude, bottomRight.longitude))
+    payload.putDouble("maxLng", maxOf(topLeft.longitude, bottomRight.longitude))
+    emitEvent("onCameraChange", payload)
   }
 
   // New Architecture 호환 이벤트 클래스 (Event<T : Event<T>> 셀프 바운드 충족)

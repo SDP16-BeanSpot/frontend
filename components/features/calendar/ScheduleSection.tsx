@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ActivityIndicator } from 'react-native';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Href, useRouter } from 'expo-router';
 
 import { fetchMonthlySchedules, fetchTodosByDate, toggleTodoStatus } from '../../../features/calendar/api';
 import { DIARY_DATA } from '../../../features/calendar/mock';
@@ -20,6 +21,7 @@ interface ScheduleSectionProps {
 }
 
 const ScheduleSection: React.FC<ScheduleSectionProps> = ({ selectedDate, onDiaryPress }) => {
+  const router = useRouter();
   const diary = DIARY_DATA[selectedDate];
   const [schedules, setSchedules] = useState<CampaignSchedule[]>([]);
   const [loading, setLoading] = useState(true);
@@ -129,7 +131,10 @@ const ScheduleSection: React.FC<ScheduleSectionProps> = ({ selectedDate, onDiary
       ) : (
         <View style={styles.empty}>
           <Text style={styles.emptyText}>해당 일자에 등록된 일정이 없어요.</Text>
-          <TouchableOpacity style={styles.emptyBtn}>
+          <TouchableOpacity
+            style={styles.emptyBtn}
+            onPress={() => router.push('/(tabs)/home' as Href)}
+          >
             <Text style={styles.emptyBtnText}>+ 관심 공고 등록하러 가기</Text>
           </TouchableOpacity>
         </View>

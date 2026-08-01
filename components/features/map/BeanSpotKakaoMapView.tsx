@@ -19,12 +19,22 @@ export interface MarkerPressEvent {
   id: string;
 }
 
+/** 현재 지도에 보이는 영역 */
+export interface CameraChangeEvent {
+  minLat: number;
+  maxLat: number;
+  minLng: number;
+  maxLng: number;
+}
+
 export interface BeanSpotKakaoMapViewProps extends ViewProps {
   markers: MapMarker[];
   markerImage?: string;
   camera?: { lat: number; lng: number; zoomLevel?: number };
   onMarkerPress?: (event: NativeSyntheticEvent<MarkerPressEvent>) => void;
   onMapReady?: () => void;
+  /** 지도 이동/줌이 끝나 보이는 영역이 바뀌었을 때 */
+  onCameraChange?: (event: NativeSyntheticEvent<CameraChangeEvent>) => void;
   initialCamera?: {
     lat: number;
     lng: number;
@@ -41,6 +51,7 @@ const BeanSpotKakaoMapView = ({
   camera,
   onMarkerPress,
   onMapReady,
+  onCameraChange,
   initialCamera,
   ...rest
 }: BeanSpotKakaoMapViewProps) => {
@@ -52,6 +63,7 @@ const BeanSpotKakaoMapView = ({
         markers={markers}
         onMarkerPress={onMarkerPress}
         onMapReady={onMapReady}
+        onCameraChange={onCameraChange}
         initialCamera={initialCamera}
         camera={camera}
         {...rest}
@@ -66,6 +78,7 @@ const BeanSpotKakaoMapView = ({
       camera={camera}
       onMarkerPress={onMarkerPress}
       onMapReady={onMapReady}
+      onCameraChange={onCameraChange}
       {...rest}
     />
   );

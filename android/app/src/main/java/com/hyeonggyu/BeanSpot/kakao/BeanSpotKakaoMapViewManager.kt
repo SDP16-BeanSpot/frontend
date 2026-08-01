@@ -47,6 +47,7 @@ class BeanSpotKakaoMapViewManager : SimpleViewManager<BeanSpotKakaoMapView>() {
     return mapOf(
       "onMarkerPress" to mapOf("registrationName" to "onMarkerPress"),
       "onMapReady" to mapOf("registrationName" to "onMapReady"),
+      "onCameraChange" to mapOf("registrationName" to "onCameraChange"),
     )
   }
 

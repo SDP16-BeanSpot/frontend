@@ -18,10 +18,10 @@ import { Href, useRouter } from 'expo-router';
 import BeanSpotKakaoMapView from '../../../components/features/map/BeanSpotKakaoMapView';
 import {
   fetchFavoritePostingIds,
-  fetchJobPostings,
+  fetchJobPostingsInBounds,
   toggleFavoritePosting,
 } from '../../../features/map/api';
-import type { JobPosting } from '../../../features/map/types';
+import type { JobPosting, MapBounds } from '../../../features/map/types';
 
 // 카테고리 목록
 const CATEGORIES = ['전체', '재생에너지', '환경보전', '일자리 창출', '지속가능성'];
@@ -36,16 +36,38 @@ export default function MapScreen() {
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [mapReady, setMapReady] = useState(false);
   const [selectedPostingId, setSelectedPostingId] = useState<string | null>(null);
   const [mapSupported, setMapSupported] = useState<boolean | null>(null);
 
-  const loadData = async () => {
+  // 지도 이동이 잦아 매번 요청하지 않도록 디바운스 처리
+  const boundsTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestSeqRef = useRef(0);
+
+  const loadPostingsInBounds = useCallback(async (bounds: MapBounds) => {
+    const seq = ++requestSeqRef.current;
     setLoading(true);
-    const data = await fetchJobPostings();
-    setVisiblePostings(data); // Initially show all
+    const data = await fetchJobPostingsInBounds(bounds);
+    // 늦게 도착한 이전 요청이 최신 결과를 덮어쓰지 않도록
+    if (seq !== requestSeqRef.current) return;
+    setVisiblePostings(data);
     setLoading(false);
-  };
+  }, []);
+
+  const handleCameraChange = useCallback(
+    (event: { nativeEvent: MapBounds }) => {
+      const bounds = event.nativeEvent;
+      if (boundsTimerRef.current) clearTimeout(boundsTimerRef.current);
+      boundsTimerRef.current = setTimeout(() => loadPostingsInBounds(bounds), 400);
+    },
+    [loadPostingsInBounds],
+  );
+
+  useEffect(
+    () => () => {
+      if (boundsTimerRef.current) clearTimeout(boundsTimerRef.current);
+    },
+    [],
+  );
 
   useEffect(() => {
     const appKey =
@@ -65,7 +87,6 @@ export default function MapScreen() {
     }
 
     BeanSpotKakaoMapModule.initializeKakaoMapSDK(appKey)
-      .then(() => setMapReady(true))
       .catch((error: unknown) => {
         console.error('KakaoMap SDK init failed:', error);
       });
@@ -73,9 +94,8 @@ export default function MapScreen() {
 
   useEffect(() => {
     if (Platform.OS !== 'android') {
-      // iOS는 네이티브 모듈 불필요 — 맵 지원으로 처리하고 바로 데이터 로드
+      // iOS는 네이티브 모듈 불필요 — 맵 지원으로 처리
       setMapSupported(true);
-      setMapReady(true);
       return;
     }
 
@@ -92,11 +112,7 @@ export default function MapScreen() {
       .catch(() => setMapSupported(false));
   }, []);
 
-  useEffect(() => {
-    if (mapReady) {
-      loadData();
-    }
-  }, [mapReady]);
+  // 공고 목록은 지도가 준비되면 곧바로 오는 onCameraChange(최초 표시 영역)로 채워집니다.
 
   // 이미 등록해둔 관심 공고를 불러와 하트 상태를 복원
   useEffect(() => {
@@ -241,7 +257,7 @@ export default function MapScreen() {
           markerImage={Platform.OS === 'android' ? 'beanspot_marker' : undefined}
           camera={userLocation ?? undefined}
           onMarkerPress={handleMarkerPress}
-          onMapReady={() => setMapReady(true)}
+          onCameraChange={handleCameraChange}
           initialCamera={{
             lat: 37.4979,
             lng: 126.8291,
