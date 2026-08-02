@@ -18,7 +18,7 @@ export default function RegisterCompletePage() {
 
       <View style={styles.content}>
         <Image
-          source={require('../../assets/images/paniOnBoarding.svg')}
+          source={require('../../assets/images/paniCharacter.png')}
           style={styles.mascot}
           resizeMode="contain"
         />
