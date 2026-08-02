@@ -4,5 +4,12 @@
   <dict>
     <key>aps-environment</key>
     <string>development</string>
+    <!-- App Store 심사 가이드라인 4.8: 카카오 로그인을 제공하므로 Sign in with Apple 필수.
+         app.config.js 의 ios.usesAppleSignIn 이 prebuild 때 넣어주는 값이지만,
+         bare 워크플로라 ios/ 가 커밋돼 있어 직접 관리합니다. -->
+    <key>com.apple.developer.applesignin</key>
+    <array>
+      <string>Default</string>
+    </array>
   </dict>
 </plist>

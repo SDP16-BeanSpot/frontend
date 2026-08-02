@@ -5,12 +5,27 @@ import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { initializeKakaoSDK } from '@react-native-kakao/core';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { ChatProvider } from '../features/chat/ChatContext';
 
 // Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
+
+// 카카오 인증 SDK 초기화. 이걸 빼먹으면 로그인이 sdkNotInitialized 로 실패합니다.
+// (지도 SDK 는 별개라 app/(tabs)/map 에서 따로 초기화합니다.)
+//
+// effect 가 아니라 모듈 최상단에서 호출합니다. React 의 effect 는 자식이 먼저 실행돼서,
+// 여기에 두지 않으면 온보딩 화면의 useKakaoAuth 가 초기화보다 먼저 SDK 를 건드립니다.
+const kakaoNativeAppKey = process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY;
+if (kakaoNativeAppKey) {
+  initializeKakaoSDK(kakaoNativeAppKey).catch((error: unknown) => {
+    console.error('카카오 SDK 초기화 실패:', error);
+  });
+} else {
+  console.warn('EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY 가 없어 카카오 로그인을 쓸 수 없습니다.');
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
