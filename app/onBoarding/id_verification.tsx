@@ -110,16 +110,10 @@ export default function IdVerificationPage() {
     }
 
     setIsLoading(true);
-    
+
     try {
-      console.log('본인인증 시도:', {
-        phoneNumber,
-        carrier: selectedCarrier,
-        name,
-        socialNumber
-      });
-      
       // ⚠️ SMS 본인인증 관련 백엔드 엔드포인트가 아직 없어 시뮬레이션으로 대체합니다.
+      // (휴대폰 번호·주민등록번호는 어디로도 전송되지 않으며, 로그에도 남기지 않습니다)
       setTimeout(() => {
         setIsLoading(false);
         const finalNickname = registeredNickname ?? name;
