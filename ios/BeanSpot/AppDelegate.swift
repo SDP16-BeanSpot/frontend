@@ -41,7 +41,9 @@ public class AppDelegate: ExpoAppDelegate {
     // 카카오톡 앱 전환 로그인 후 kakao{네이티브앱키}://oauth 로 돌아오는 콜백.
     // 여기서 SDK 에 넘기지 않으면 login() 프라미스가 영영 resolve 되지 않습니다.
     if RNCKakaoUserUtil.isKakaoTalkLoginUrl(url) {
-      return RNCKakaoUserUtil.handleOpenUrl(url)
+      // Obj-C 시그니처는 handleOpenUrl: 이지만, Swift 임포터가 파라미터 타입(URL)과
+      // 겹치는 꼬리 단어를 잘라내 handleOpen(_:) 으로 노출합니다.
+      return RNCKakaoUserUtil.handleOpen(url)
     }
 
     return super.application(app, open: url, options: options) || RCTLinkingManager.application(app, open: url, options: options)
