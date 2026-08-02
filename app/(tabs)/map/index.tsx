@@ -9,6 +9,8 @@ import {
   ActivityIndicator,
   Platform,
   NativeModules,
+  Alert,
+  Linking,
 } from 'react-native';
 import BottomSheet, { BottomSheetView, BottomSheetFlatList } from '@gorhom/bottom-sheet';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -157,24 +159,66 @@ export default function MapScreen() {
     return visiblePostings.filter((posting) => posting.category === selectedCategory);
   }, [visiblePostings, selectedCategory]);
 
+  // 현재 위치 핀 표시용. 추적 중엔 watchPositionAsync 로 계속 갱신됨
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  // 지도를 명시적으로 옮길 때만 채움 (userLocation 은 핀만 갱신, 카메라는 안 움직임 —
+  // 안 그러면 추적 중 매번 카메라가 재중심되어 사용자가 지도를 못 둘러보게 됨)
+  const [cameraTarget, setCameraTarget] = useState<
+    { lat: number; lng: number; zoomLevel?: number } | undefined
+  >(undefined);
+  const [isTrackingLocation, setIsTrackingLocation] = useState(false);
+  const locationSubscriptionRef = useRef<Location.LocationSubscription | null>(null);
 
-  const resetLocation = async () => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        alert('위치 권한이 필요합니다.');
-        return;
+  useEffect(
+    () => () => {
+      locationSubscriptionRef.current?.remove();
+      locationSubscriptionRef.current = null;
+    },
+    [],
+  );
+
+  const startLocationTracking = useCallback(async () => {
+    const { status, canAskAgain } = await Location.requestForegroundPermissionsAsync();
+    if (status !== 'granted') {
+      if (canAskAgain) {
+        Alert.alert('알림', '위치 권한이 필요합니다.');
+      } else {
+        Alert.alert('알림', '위치 권한이 거부되어 있습니다. 설정에서 권한을 허용해주세요.', [
+          { text: '취소', style: 'cancel' },
+          { text: '설정 열기', onPress: () => Linking.openSettings() },
+        ]);
       }
+      return;
+    }
+
+    try {
       const location = await Location.getCurrentPositionAsync({});
-      setUserLocation({
-        lat: location.coords.latitude,
-        lng: location.coords.longitude,
-      });
+      const coords = { lat: location.coords.latitude, lng: location.coords.longitude };
+      setUserLocation(coords);
+      setCameraTarget({ ...coords, zoomLevel: 3 });
     } catch (error) {
       console.error('위치 가져오기 실패:', error);
     }
-  };
+
+    if (!locationSubscriptionRef.current) {
+      locationSubscriptionRef.current = await Location.watchPositionAsync(
+        { accuracy: Location.Accuracy.High, timeInterval: 5000, distanceInterval: 10 },
+        (location) => {
+          setUserLocation({ lat: location.coords.latitude, lng: location.coords.longitude });
+        },
+      );
+    }
+    setIsTrackingLocation(true);
+  }, []);
+
+  /** 위치 버튼 핸들러. 추적 중이 아니면 시작하고, 이미 추적 중이면 카메라만 다시 내 위치로 */
+  const handleLocateMe = useCallback(() => {
+    if (isTrackingLocation && userLocation) {
+      setCameraTarget({ ...userLocation, zoomLevel: 3 });
+      return;
+    }
+    startLocationTracking();
+  }, [isTrackingLocation, userLocation, startLocationTracking]);
 
   const renderPostingCard = ({ item }: { item: JobPosting }) => (
     <TouchableOpacity
@@ -229,7 +273,7 @@ export default function MapScreen() {
     <View style={styles.emptyState}>
       <Ionicons name="map-outline" size={100} color="#E0E0E0" />
       <Text style={styles.emptyText}>지도 영역 내에 공고가 없습니다.</Text>
-      <TouchableOpacity style={styles.resetBtn} onPress={resetLocation}>
+      <TouchableOpacity style={styles.resetBtn} onPress={handleLocateMe}>
         <Text style={styles.resetBtnText}>내 위치로 이동</Text>
         <Ionicons name="refresh-outline" size={18} color="#4CAF50" />
       </TouchableOpacity>
@@ -251,19 +295,33 @@ export default function MapScreen() {
           <ActivityIndicator size="large" color="#4CAF50" />
         </View>
       ) : (
-        <BeanSpotKakaoMapView
-          style={styles.mapView}
-          markers={visiblePostings}
-          markerImage={Platform.OS === 'android' ? 'beanspot_marker' : undefined}
-          camera={userLocation ?? undefined}
-          onMarkerPress={handleMarkerPress}
-          onCameraChange={handleCameraChange}
-          initialCamera={{
-            lat: 37.4979,
-            lng: 126.8291,
-            zoomLevel: 3,
-          }}
-        />
+        <>
+          <BeanSpotKakaoMapView
+            style={styles.mapView}
+            markers={visiblePostings}
+            markerImage={Platform.OS === 'android' ? 'beanspot_marker' : undefined}
+            camera={cameraTarget}
+            userLocation={userLocation}
+            onMarkerPress={handleMarkerPress}
+            onCameraChange={handleCameraChange}
+            initialCamera={{
+              lat: 37.4979,
+              lng: 126.8291,
+              zoomLevel: 3,
+            }}
+          />
+          <TouchableOpacity
+            style={styles.locateFab}
+            onPress={handleLocateMe}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Ionicons
+              name={isTrackingLocation ? 'locate' : 'locate-outline'}
+              size={22}
+              color={isTrackingLocation ? '#4CAF50' : '#424242'}
+            />
+          </TouchableOpacity>
+        </>
       )}
 
       <BottomSheet
@@ -341,6 +399,22 @@ const styles = StyleSheet.create({
   },
   mapView: {
     flex: 1,
+  },
+  locateFab: {
+    position: 'absolute',
+    right: 16,
+    bottom: '14%',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FFFFFF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
   },
   mapGuard: {
     flex: 1,

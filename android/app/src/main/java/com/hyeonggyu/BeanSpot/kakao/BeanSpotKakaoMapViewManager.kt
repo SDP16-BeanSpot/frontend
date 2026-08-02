@@ -43,6 +43,17 @@ class BeanSpotKakaoMapViewManager : SimpleViewManager<BeanSpotKakaoMapView>() {
     view.moveCamera(lat, lng, zoom)
   }
 
+  @ReactProp(name = "userLocation")
+  fun setUserLocation(view: BeanSpotKakaoMapView, location: ReadableMap?) {
+    if (location == null) {
+      view.setUserLocation(null, null)
+      return
+    }
+    val lat = if (location.hasKey("lat")) location.getDouble("lat") else null
+    val lng = if (location.hasKey("lng")) location.getDouble("lng") else null
+    view.setUserLocation(lat, lng)
+  }
+
   override fun getExportedCustomDirectEventTypeConstants(): Map<String, Any> {
     return mapOf(
       "onMarkerPress" to mapOf("registrationName" to "onMarkerPress"),

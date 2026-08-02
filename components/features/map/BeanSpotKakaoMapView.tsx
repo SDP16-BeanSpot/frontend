@@ -31,6 +31,8 @@ export interface BeanSpotKakaoMapViewProps extends ViewProps {
   markers: MapMarker[];
   markerImage?: string;
   camera?: { lat: number; lng: number; zoomLevel?: number };
+  /** 현재 위치 핀. null/undefined 면 숨김. 위치 추적 중엔 매 업데이트마다 바뀝니다 */
+  userLocation?: { lat: number; lng: number } | null;
   onMarkerPress?: (event: NativeSyntheticEvent<MarkerPressEvent>) => void;
   onMapReady?: () => void;
   /** 지도 이동/줌이 끝나 보이는 영역이 바뀌었을 때 */
@@ -49,6 +51,7 @@ const BeanSpotKakaoMapView = ({
   markers,
   markerImage,
   camera,
+  userLocation,
   onMarkerPress,
   onMapReady,
   onCameraChange,
@@ -66,6 +69,7 @@ const BeanSpotKakaoMapView = ({
         onCameraChange={onCameraChange}
         initialCamera={initialCamera}
         camera={camera}
+        userLocation={userLocation}
         {...rest}
       />
     );
@@ -76,6 +80,7 @@ const BeanSpotKakaoMapView = ({
       markers={markers}
       markerImage={markerImage}
       camera={camera}
+      userLocation={userLocation}
       onMarkerPress={onMarkerPress}
       onMapReady={onMapReady}
       onCameraChange={onCameraChange}

@@ -2,6 +2,9 @@ package com.hyeonggyu.beanspot.kakao
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.net.Uri
 import android.widget.FrameLayout
 import com.facebook.react.bridge.Arguments
@@ -18,6 +21,7 @@ import com.kakao.vectormap.MapView
 import com.kakao.vectormap.camera.CameraUpdateFactory
 import com.kakao.vectormap.label.Label
 import com.kakao.vectormap.label.LabelLayer
+import com.kakao.vectormap.label.LabelLayerOptions
 import com.kakao.vectormap.label.LabelOptions
 import com.kakao.vectormap.label.LabelStyle
 import com.kakao.vectormap.label.LabelStyles
@@ -37,6 +41,13 @@ class BeanSpotKakaoMapView(context: ThemedReactContext) : FrameLayout(context) {
   private var markerImageUri: String? = null
   private val labelIdToMarkerId = mutableMapOf<String, String>()
 
+  // 현재 위치 핀은 공고 마커와 별도 레이어에 그린다 (renderMarkers()의 removeAll()에 같이 지워지지 않도록)
+  private var userLocationLayer: LabelLayer? = null
+  private var pendingUserLocation: LatLng? = null
+  private val userLocationLabelStyles: LabelStyles by lazy {
+    LabelStyles.from(LabelStyle.from(createUserLocationBitmap()))
+  }
+
   init {
     addView(
       mapView,
@@ -54,6 +65,7 @@ class BeanSpotKakaoMapView(context: ThemedReactContext) : FrameLayout(context) {
           bindLabelClickListener(map)
           bindCameraMoveEndListener(map)
           renderMarkers()
+          renderUserLocation()
           emitEvent("onMapReady", Arguments.createMap())
           // 최초 표시 영역도 한 번 알려줘야 첫 화면의 공고 목록을 채울 수 있음
           emitCameraChange(map)
@@ -80,6 +92,49 @@ class BeanSpotKakaoMapView(context: ThemedReactContext) : FrameLayout(context) {
     val position = LatLng.from(lat, lng)
     val update = CameraUpdateFactory.newCenterPosition(position, zoomLevel)
     map.moveCamera(update)
+  }
+
+  /** 현재 위치 핀을 찍거나(lat/lng 있음) 지운다(둘 다 null). 위치 추적 중엔 매 업데이트마다 호출됨 */
+  fun setUserLocation(lat: Double?, lng: Double?) {
+    pendingUserLocation = if (lat != null && lng != null) LatLng.from(lat, lng) else null
+    renderUserLocation()
+  }
+
+  private fun renderUserLocation() {
+    val map = kakaoMap ?: return
+    val layer = userLocationLayer
+      ?: map.labelManager?.addLayer(LabelLayerOptions.from(USER_LOCATION_LAYER_ID))
+        ?.also { userLocationLayer = it }
+      ?: return
+
+    // 이 레이어엔 현재 위치 핀 하나만 그리므로 매번 지우고 다시 그려도 충분히 저렴함
+    layer.removeAll()
+
+    val position = pendingUserLocation ?: return
+    val options = LabelOptions.from(position).setStyles(userLocationLabelStyles)
+    layer.addLabel(options)
+  }
+
+  /** 잡지·앱 아이콘 에셋 없이 파란 점 + 흰 테두리 + 반투명 후광을 그려 "현재 위치" 핀으로 사용 */
+  private fun createUserLocationBitmap(): Bitmap {
+    val density = context.resources.displayMetrics.density
+    val size = (28 * density).toInt().coerceAtLeast(1)
+    val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    val center = size / 2f
+
+    val haloPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+      color = Color.argb(60, 33, 150, 243)
+    }
+    canvas.drawCircle(center, center, center, haloPaint)
+
+    val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
+    canvas.drawCircle(center, center, center * 0.55f, ringPaint)
+
+    val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#2196F3") }
+    canvas.drawCircle(center, center, center * 0.4f, dotPaint)
+
+    return bitmap
   }
 
   private fun bindLabelClickListener(map: KakaoMap) {
@@ -209,5 +264,9 @@ class BeanSpotKakaoMapView(context: ThemedReactContext) : FrameLayout(context) {
     val resId = context.resources.getIdentifier(resourceName, "drawable", context.packageName)
     if (resId == 0) return null
     return BitmapFactory.decodeResource(context.resources, resId)
+  }
+
+  companion object {
+    private const val USER_LOCATION_LAYER_ID = "beanspot_user_location_layer"
   }
 }

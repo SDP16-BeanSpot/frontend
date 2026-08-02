@@ -100,6 +100,41 @@ kakao.maps.load(function() {
     if (zoomLevel) map.setLevel(zoomLevel);
   };
 
+  // 현재 위치 핀. 공고 마커와 달리 항상 최대 1개만 존재하며, 위치 추적 중엔
+  // RN 쪽에서 주기적으로 호출되어 위치만 갱신합니다 (마커를 새로 만들지 않음).
+  var USER_LOCATION_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28">' +
+    '<circle cx="14" cy="14" r="14" fill="#2196F3" fill-opacity="0.24"/>' +
+    '<circle cx="14" cy="14" r="8" fill="#FFFFFF"/>' +
+    '<circle cx="14" cy="14" r="6" fill="#2196F3"/>' +
+    '</svg>';
+  var userLocationImage = new kakao.maps.MarkerImage(
+    'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(USER_LOCATION_SVG),
+    new kakao.maps.Size(28, 28),
+    { offset: new kakao.maps.Point(14, 14) }
+  );
+  var userLocationMarker = null;
+
+  window.__setUserLocation = function(lat, lng) {
+    if (lat == null || lng == null) {
+      if (userLocationMarker) {
+        userLocationMarker.setMap(null);
+        userLocationMarker = null;
+      }
+      return;
+    }
+    var position = new kakao.maps.LatLng(lat, lng);
+    if (userLocationMarker) {
+      userLocationMarker.setPosition(position);
+    } else {
+      userLocationMarker = new kakao.maps.Marker({
+        position: position,
+        map: map,
+        image: userLocationImage,
+        zIndex: 10
+      });
+    }
+  };
+
   // 보이는 영역이 바뀌면 알림 (지도 범위 내 공고만 목록에 표시하기 위함)
   function postBounds() {
     var b = map.getBounds();
@@ -135,6 +170,7 @@ const KakaoMapWebView: React.FC<KakaoMapWebViewProps> = ({
   onCameraChange,
   initialCamera,
   camera,
+  userLocation,
   style,
 }) => {
   const webViewRef = useRef<WebView>(null);
@@ -145,6 +181,8 @@ const KakaoMapWebView: React.FC<KakaoMapWebViewProps> = ({
   markersRef.current = markers;
   const cameraRef = useRef(camera);
   cameraRef.current = camera;
+  const userLocationRef = useRef(userLocation);
+  userLocationRef.current = userLocation;
 
   // HTML 은 마운트 시 딱 한 번만 생성 (리로드 방지)
   const htmlRef = useRef<string | null>(null);
@@ -168,6 +206,16 @@ const KakaoMapWebView: React.FC<KakaoMapWebViewProps> = ({
     [inject],
   );
 
+  const pushUserLocation = useCallback(
+    (next: { lat: number; lng: number } | null | undefined) =>
+      inject(
+        next
+          ? `window.__setUserLocation(${next.lat}, ${next.lng});`
+          : `window.__setUserLocation(null, null);`,
+      ),
+    [inject],
+  );
+
   useEffect(() => {
     if (readyRef.current) pushMarkers(markers);
   }, [markers, pushMarkers]);
@@ -175,6 +223,10 @@ const KakaoMapWebView: React.FC<KakaoMapWebViewProps> = ({
   useEffect(() => {
     if (readyRef.current && camera) pushCamera(camera);
   }, [camera, pushCamera]);
+
+  useEffect(() => {
+    if (readyRef.current) pushUserLocation(userLocation);
+  }, [userLocation, pushUserLocation]);
 
   const handleMessage = useCallback(
     (e: WebViewMessageEvent) => {
@@ -188,9 +240,10 @@ const KakaoMapWebView: React.FC<KakaoMapWebViewProps> = ({
       switch (msg.type) {
         case 'mapReady':
           readyRef.current = true;
-          // 지도가 준비되기 전에 도착한 마커·카메라를 지금 반영
+          // 지도가 준비되기 전에 도착한 마커·카메라·현재 위치를 지금 반영
           pushMarkers(markersRef.current);
           if (cameraRef.current) pushCamera(cameraRef.current);
+          pushUserLocation(userLocationRef.current);
           onMapReady?.();
           break;
         case 'markerPress':
@@ -211,7 +264,7 @@ const KakaoMapWebView: React.FC<KakaoMapWebViewProps> = ({
           break;
       }
     },
-    [onMapReady, onMarkerPress, onCameraChange, pushMarkers, pushCamera],
+    [onMapReady, onMarkerPress, onCameraChange, pushMarkers, pushCamera, pushUserLocation],
   );
 
   if (!APP_KEY || APP_KEY === 'your_kakao_map_javascript_key_here') {
