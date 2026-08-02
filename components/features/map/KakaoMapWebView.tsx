@@ -80,13 +80,27 @@ kakao.maps.load(function() {
 
   var markerObjects = [];
 
+  // Figma "Maps / Markers / Near Pinlet Marker" (node 577:24849) 를 그대로 옮긴 공고 핀.
+  // 원본의 그라디언트 테두리·바닥 그림자는 생략(작은 지도 마커라 시각적 차이 미미).
+  var JOB_MARKER_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="39" height="53" viewBox="0 0 39 52.375">' +
+    '<path d="M20.5 5C28.7843 5 35.5 11.7157 35.5 20V22.5C35.5 28.8423 31.5637 34.265 26.001 36.459C23.5461 38.3872 20.9177 41.1071 20.1719 44.9863C20.0621 45.5574 19.5816 46 19 46C18.4184 46 17.9379 45.5574 17.8281 44.9863C17.0097 40.7295 13.9248 37.8683 11.2891 35.918C6.37416 33.455 3 28.3718 3 22.5V20C3 11.7157 9.71573 5 18 5H20.5Z" fill="#41230F"/>' +
+    '<path d="M19.2295 12C23.7865 12.0002 27.458 15.7624 27.458 20.375C27.458 23.1293 26.0926 25.5039 24.5566 27.3096C23.0157 29.1212 21.2437 30.4315 20.292 31.0713C19.6462 31.5054 18.8129 31.5053 18.167 31.0713C17.2153 30.4316 15.4425 29.1214 13.9014 27.3096C12.3654 25.5039 11.0001 23.1293 11 20.375C11 15.7623 14.6723 12 19.2295 12ZM19.2295 16.8477C18.4643 16.8477 17.7711 17.1578 17.2695 17.6592L17.2637 17.665C16.7623 18.1663 16.4521 18.859 16.4521 19.624C16.4523 21.1535 17.6922 22.3934 19.2217 22.3936C19.5159 22.3936 19.7994 22.3467 20.0654 22.2617C21.1873 21.9069 22.001 20.8584 22.001 19.6191C22.0008 18.0886 20.76 16.8479 19.2295 16.8477Z" fill="#87FC6A" fill-rule="evenodd" clip-rule="evenodd"/>' +
+    '</svg>';
+  var jobMarkerImage = new kakao.maps.MarkerImage(
+    'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(JOB_MARKER_SVG),
+    new kakao.maps.Size(39, 53),
+    // 핀의 뾰족한 끝이 실제 좌표를 가리키도록 하단 중앙을 기준점으로
+    { offset: new kakao.maps.Point(19.5, 53) }
+  );
+
   // 마커 전체 교체. RN 쪽 markers prop 이 바뀔 때마다 호출됩니다.
   window.__setMarkers = function(items) {
     markerObjects.forEach(function(m) { m.setMap(null); });
     markerObjects = items.map(function(item) {
       var marker = new kakao.maps.Marker({
         position: new kakao.maps.LatLng(item.lat, item.lng),
-        map: map
+        map: map,
+        image: jobMarkerImage
       });
       kakao.maps.event.addListener(marker, 'click', function() {
         post({ type: 'markerPress', id: item.id });
@@ -100,17 +114,19 @@ kakao.maps.load(function() {
     if (zoomLevel) map.setLevel(zoomLevel);
   };
 
-  // 현재 위치 핀. 공고 마커와 달리 항상 최대 1개만 존재하며, 위치 추적 중엔
-  // RN 쪽에서 주기적으로 호출되어 위치만 갱신합니다 (마커를 새로 만들지 않음).
-  var USER_LOCATION_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28">' +
-    '<circle cx="14" cy="14" r="14" fill="#2196F3" fill-opacity="0.24"/>' +
-    '<circle cx="14" cy="14" r="8" fill="#FFFFFF"/>' +
-    '<circle cx="14" cy="14" r="6" fill="#2196F3"/>' +
+  // 현재 위치 핀. Figma "Markers / Current Location Marker" (node 369:21859) 값 그대로:
+  // halo r=16(#1F6AFF 30%), 흰 링 바깥 r≈8.67, 파란 점 r≈6.67 (32x32 기준).
+  // 공고 마커와 달리 항상 최대 1개만 존재하며, 위치 추적 중엔 RN 쪽에서 주기적으로
+  // 호출되어 위치만 갱신합니다 (마커를 새로 만들지 않음).
+  var USER_LOCATION_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">' +
+    '<circle cx="16" cy="16" r="16" fill="#1F6AFF" fill-opacity="0.3"/>' +
+    '<circle cx="16" cy="16" r="8.6667" fill="#FFFFFF"/>' +
+    '<circle cx="16" cy="16" r="6.6667" fill="#1F6AFF"/>' +
     '</svg>';
   var userLocationImage = new kakao.maps.MarkerImage(
     'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(USER_LOCATION_SVG),
-    new kakao.maps.Size(28, 28),
-    { offset: new kakao.maps.Point(14, 14) }
+    new kakao.maps.Size(32, 32),
+    { offset: new kakao.maps.Point(16, 16) }
   );
   var userLocationMarker = null;
 

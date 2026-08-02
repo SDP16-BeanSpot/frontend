@@ -7,6 +7,7 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.net.Uri
 import android.widget.FrameLayout
+import androidx.core.content.ContextCompat
 import com.facebook.react.bridge.Arguments
 import com.facebook.react.bridge.ReactContext
 import com.facebook.react.uimanager.ThemedReactContext
@@ -115,24 +116,27 @@ class BeanSpotKakaoMapView(context: ThemedReactContext) : FrameLayout(context) {
     layer.addLabel(options)
   }
 
-  /** 잡지·앱 아이콘 에셋 없이 파란 점 + 흰 테두리 + 반투명 후광을 그려 "현재 위치" 핀으로 사용 */
+  /**
+   * Figma "Markers / Current Location Marker" (node 369:21859) 값 그대로 재현.
+   * 32x32 캔버스 기준 halo r=16(#1F6AFF 30%), 흰 링 바깥 r≈8.67, 파란 점 r≈6.67.
+   */
   private fun createUserLocationBitmap(): Bitmap {
     val density = context.resources.displayMetrics.density
-    val size = (28 * density).toInt().coerceAtLeast(1)
+    val size = (32 * density).toInt().coerceAtLeast(1)
     val bitmap = Bitmap.createBitmap(size, size, Bitmap.Config.ARGB_8888)
     val canvas = Canvas(bitmap)
     val center = size / 2f
 
     val haloPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-      color = Color.argb(60, 33, 150, 243)
+      color = Color.argb(77, 31, 106, 255) // #1F6AFF @ 30%
     }
     canvas.drawCircle(center, center, center, haloPaint)
 
     val ringPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.WHITE }
-    canvas.drawCircle(center, center, center * 0.55f, ringPaint)
+    canvas.drawCircle(center, center, center * (8.6667f / 16f), ringPaint)
 
-    val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#2196F3") }
-    canvas.drawCircle(center, center, center * 0.4f, dotPaint)
+    val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor("#1F6AFF") }
+    canvas.drawCircle(center, center, center * (6.6667f / 16f), dotPaint)
 
     return bitmap
   }
@@ -263,7 +267,21 @@ class BeanSpotKakaoMapView(context: ThemedReactContext) : FrameLayout(context) {
   private fun loadBitmapFromResourceName(resourceName: String): Bitmap? {
     val resId = context.resources.getIdentifier(resourceName, "drawable", context.packageName)
     if (resId == 0) return null
-    return BitmapFactory.decodeResource(context.resources, resId)
+    // 래스터(png/jpg)는 바로 디코드됨. beanspot_marker 처럼 VectorDrawable(XML)인 경우
+    // decodeResource 가 null 을 반환하므로 Drawable 을 직접 캔버스에 그려 비트맵으로 변환.
+    return BitmapFactory.decodeResource(context.resources, resId) ?: vectorDrawableToBitmap(resId)
+  }
+
+  private fun vectorDrawableToBitmap(resId: Int): Bitmap? {
+    val drawable = ContextCompat.getDrawable(context, resId) ?: return null
+    val density = context.resources.displayMetrics.density
+    val width = drawable.intrinsicWidth.takeIf { it > 0 } ?: (39 * density).toInt()
+    val height = drawable.intrinsicHeight.takeIf { it > 0 } ?: (52 * density).toInt()
+    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(bitmap)
+    drawable.setBounds(0, 0, width, height)
+    drawable.draw(canvas)
+    return bitmap
   }
 
   companion object {
